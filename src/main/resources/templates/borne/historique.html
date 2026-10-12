@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Historique', 'Accès parking', 'borne', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <article class="card">
+        <h2>Mouvements</h2>
+        <p class="muted">Plaque : <strong th:text="${plaque}">ABC</strong></p>
+        <div th:if="${sessions == null or #lists.isEmpty(sessions)}" class="empty">
+            <p>Aucun mouvement pour cette immatriculation.</p>
+        </div>
+        <div class="table-wrap" th:unless="${sessions == null or #lists.isEmpty(sessions)}">
+            <table class="data">
+                <thead>
+                <tr>
+                    <th>Session</th>
+                    <th>Immatriculation</th>
+                    <th>Entrée</th>
+                    <th>Sortie</th>
+                    <th>Statut</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${sessions}">
+                    <td th:text="${s.entreeSortie_id}">1</td>
+                    <td th:text="${s.immatriculation}">ABC</td>
+                    <td th:text="${s.dateHeureEntree != null ? #temporals.format(s.dateHeureEntree, 'dd/MM/yyyy HH:mm') : '—'}">d</td>
+                    <td th:text="${s.dateHeureSortie != null ? #temporals.format(s.dateHeureSortie, 'dd/MM/yyyy HH:mm') : '—'}">d</td>
+                    <td><span class="badge" th:text="${s.statut}">TERMINE</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p><a class="btn btn-ghost" th:href="@{/borne}">Retour à la borne</a></p>
+    </article>
+</section>
+</body>
+</html>

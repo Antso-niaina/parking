@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Justificatifs PMR', 'Administration', 'justificatifs-admin', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <article class="card">
+        <h2>Demandes en attente</h2>
+        <div th:if="${justificatifs == null or #lists.isEmpty(justificatifs)}" class="empty">
+            <th:block th:replace="~{fragments/icons :: i('file-check')}"/>
+            <p>Aucun justificatif en attente.</p>
+        </div>
+        <div class="table-wrap" th:unless="${justificatifs == null or #lists.isEmpty(justificatifs)}">
+            <table class="data">
+                <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Client</th>
+                    <th>Carte</th>
+                    <th>Expiration</th>
+                    <th>Dépôt</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="j : ${justificatifs}">
+                    <td th:text="${j.justificatifId()}">1</td>
+                    <td th:text="${j.clientNom()}">client</td>
+                    <td th:text="${j.numeroCarte()}">n</td>
+                    <td th:text="${j.dateExpiration()}">d</td>
+                    <td th:text="${j.dateDepot() != null ? #temporals.format(j.dateDepot(), 'dd/MM/yyyy HH:mm') : '—'}">d</td>
+                    <td class="row-actions">
+                        <form th:action="@{/admin/justificatifs/{id}/valider(id=${j.justificatifId()})}" method="post" data-once>
+                            <button class="btn btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('check')}"/> Valider
+                            </button>
+                        </form>
+                        <form th:action="@{/admin/justificatifs/{id}/refuser(id=${j.justificatifId()})}" method="post"
+                              data-once data-confirm="Refuser ce justificatif ?">
+                            <button class="btn btn-ghost btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('x')}"/> Refuser
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+</body>
+</html>

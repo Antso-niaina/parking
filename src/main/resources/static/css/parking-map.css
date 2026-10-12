@@ -1,0 +1,66 @@
+.map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.1rem;
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+}
+.legend-item { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+.spot,
+.legend-swatch {
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 4px;
+    border: 1px solid var(--navy-line);
+    background: var(--white);
+    display: inline-block;
+    position: relative;
+}
+.legend-swatch.is-libre,
+.spot.is-libre { background: var(--white); }
+.legend-swatch.is-reservee,
+.spot.is-reservee {
+    background: repeating-linear-gradient(-45deg, var(--white), var(--white) 3px, var(--blue-soft) 3px, var(--blue-soft) 6px);
+    border-color: var(--blue);
+}
+.legend-swatch.is-occupee,
+.spot.is-occupee {
+    background: var(--navy);
+    border-color: var(--navy);
+}
+.legend-swatch.is-hors,
+.spot.is-hors {
+    background: var(--gray);
+    border-style: dashed;
+}
+.legend-swatch.is-prm,
+.spot.is-prm { outline: 2px solid var(--blue); outline-offset: 1px; }
+
+.parking-map { display: grid; gap: 1.1rem; }
+.map-zone h3 { margin: 0 0 0.55rem; font-size: 0.92rem; }
+.spots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr));
+    gap: 0.45rem;
+}
+.spot-card {
+    border: 1px solid var(--navy-line);
+    border-radius: 8px;
+    background: var(--white);
+    padding: 0.45rem 0.4rem 0.5rem;
+    min-height: 4.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    text-align: center;
+}
+.spot-card.is-occupee { background: var(--navy); color: var(--white); }
+.spot-card.is-reservee { border-color: var(--blue); background: var(--blue-soft); }
+.spot-card.is-hors { background: var(--gray); border-style: dashed; }
+.spot-card .num { font-weight: 700; font-size: 0.88rem; }
+.spot-card .meta { font-size: 0.68rem; color: var(--navy-muted); line-height: 1.2; }
+.spot-card.is-occupee .meta { color: color-mix(in srgb, var(--white) 72%, transparent); }
+.spot-card .icon { width: 0.95rem; height: 0.95rem; }

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Places', 'Administration', 'places', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Créer une place</h2>
+            <form th:action="@{/admin/places}" th:object="${form}" method="post" class="form" data-once>
+                <div class="form-row">
+                    <div class="field">
+                        <label for="numero">Numéro</label>
+                        <input id="numero" type="text" th:field="*{numero}" required/>
+                    </div>
+                    <div class="field">
+                        <label for="niveau">Niveau</label>
+                        <input id="niveau" type="number" th:field="*{niveau}"/>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label for="type">Type</label>
+                        <select id="type" th:field="*{type}" required>
+                            <option th:each="t : ${types}" th:value="${t}" th:text="${t}">STANDARD</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="zoneId">Zone</label>
+                        <select id="zoneId" th:field="*{zoneId}" required>
+                            <option value="">Choisir</option>
+                            <option th:each="z : ${zones}" th:value="${z.zone_id}" th:text="${z.nom}">Zone</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('plus')}"/> Créer
+                </button>
+            </form>
+            <form th:action="@{/admin/places-prioritaires/quota}" method="post" data-once style="margin-top:1rem;">
+                <button class="btn btn-ghost" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('shield')}"/> Garantir le quota PMR
+                </button>
+            </form>
+        </article>
+        <article class="card">
+            <h2>Légende du plan</h2>
+            <div class="map-legend">
+                <span class="legend-item"><span class="legend-swatch is-libre"></span> Libre</span>
+                <span class="legend-item"><span class="legend-swatch is-reservee"></span> Réservée</span>
+                <span class="legend-item"><span class="legend-swatch is-occupee"></span> Occupée</span>
+                <span class="legend-item"><span class="legend-swatch is-hors"></span> Hors service</span>
+                <span class="legend-item"><span class="legend-swatch is-prm"></span> Place PMR</span>
+            </div>
+            <p class="muted">Les états reflètent le statut enregistré en base, pas une simulation navigateur. Le niveau n’est pas exposé dans le DTO des places : le plan est groupé par zone.</p>
+            <label class="field">
+                <span>Filtrer par zone</span>
+                <select data-zone-filter>
+                    <option value="">Toutes les zones</option>
+                    <option th:each="z : ${zones}" th:value="${z.zone_id}" th:text="${z.nom}">Zone</option>
+                </select>
+            </label>
+        </article>
+    </div>
+
+    <article class="card parking-map" style="margin-top:1rem;">
+        <h2>Plan des places</h2>
+        <div th:if="${places == null or #lists.isEmpty(places)}" class="empty">
+            <th:block th:replace="~{fragments/icons :: i('square-parking')}"/>
+            <p>Aucune place.</p>
+        </div>
+        <div th:each="z : ${zones}" class="map-zone" th:attr="data-zone-block=${z.zone_id}">
+            <h3 th:text="${z.nom}">Zone</h3>
+            <div class="spots">
+                <div th:each="p : ${places}" th:if="${p.zone_id == z.zone_id}"
+                     class="spot-card"
+                     th:classappend="${p.statut.name() == 'OCCUPEE'} ? 'is-occupee' : (${p.statut.name() == 'RESERVEE'} ? 'is-reservee' : (${p.statut.name() == 'HORS_SERVICE'} ? 'is-hors' : ''))">
+                    <th:block th:replace="~{fragments/icons :: i('square-parking')}"/>
+                    <span class="num" th:text="${p.numero}">A1</span>
+                    <span class="meta" th:text="${p.type_place} + ' · ' + ${p.statut}">STANDARD · LIBRE</span>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <article class="card" style="margin-top:1rem;">
+        <h2>Liste</h2>
+        <div class="table-wrap" th:if="${places != null and !#lists.isEmpty(places)}">
+            <table class="data">
+                <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Type</th>
+                    <th>Statut</th>
+                    <th>Zone</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${places}">
+                    <td th:text="${p.numero}">A1</td>
+                    <td th:text="${p.type_place}">STANDARD</td>
+                    <td><span class="badge" th:text="${p.statut}">LIBRE</span></td>
+                    <td th:text="${p.zoneNom}">Zone</td>
+                    <td>
+                        <form th:action="@{/admin/places/{id}/statut(id=${p.place_id})}" method="post" class="row-actions" data-once>
+                            <label class="visually-hidden" th:for="'st-' + ${p.place_id}">Nouveau statut</label>
+                            <select th:id="'st-' + ${p.place_id}" name="statut">
+                                <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}">LIBRE</option>
+                            </select>
+                            <button class="btn btn-ghost btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('pencil')}"/> Statut
+                            </button>
+                        </form>
+                        <form th:action="@{/admin/places/{id}/zone(id=${p.place_id})}" method="post" class="row-actions" data-once>
+                            <label class="visually-hidden" th:for="'zn-' + ${p.place_id}">Zone</label>
+                            <select th:id="'zn-' + ${p.place_id}" name="zoneId">
+                                <option th:each="z : ${zones}" th:value="${z.zone_id}" th:text="${z.nom}">Zone</option>
+                            </select>
+                            <button class="btn btn-ghost btn-sm" type="submit">Zone</button>
+                        </form>
+                        <form th:action="@{/admin/places/{id}/maintenance(id=${p.place_id})}" method="post"
+                              data-once data-confirm="Mettre cette place hors service ?">
+                            <button class="btn btn-ghost btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('ban')}"/> Maintenance
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+</body>
+</html>

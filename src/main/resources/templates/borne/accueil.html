@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Borne', 'Accès parking', 'borne', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="grid grid-3">
+        <article class="card">
+            <h2>Entrée</h2>
+            <form th:action="@{/borne/entree}" th:object="${entree}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="plaque">Immatriculation</label>
+                    <input id="plaque" type="text" th:field="*{plaque}" required/>
+                </div>
+                <div class="field">
+                    <label for="typeVehicule">Type de véhicule</label>
+                    <select id="typeVehicule" th:field="*{typeVehicule}">
+                        <option value="">Non précisé</option>
+                        <option th:each="t : ${typesVehicule}" th:value="${t}" th:text="${t}">VOITURE</option>
+                    </select>
+                </div>
+                <button class="btn" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('plus')}"/> Enregistrer l’entrée
+                </button>
+            </form>
+        </article>
+        <article class="card">
+            <h2>Sortie — calculer le montant</h2>
+            <form th:action="@{/borne/sortie/montant}" th:object="${sortie}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="plaqueSortie">Immatriculation</label>
+                    <input id="plaqueSortie" type="text" th:field="*{plaque}" required/>
+                </div>
+                <label class="check">
+                    <input type="checkbox" th:field="*{ticketPerdu}"/>
+                    Ticket perdu
+                </label>
+                <button class="btn" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('calculator')}"/> Calculer le montant
+                </button>
+            </form>
+        </article>
+        <article class="card">
+            <h2>Signaler une anomalie</h2>
+            <form th:action="@{/borne/anomalies}" th:object="${anomalie}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="typeAnomalie">Type</label>
+                    <select id="typeAnomalie" th:field="*{type}" required>
+                        <option th:each="t : ${typesAnomalie}" th:value="${t}" th:text="${t}">AUTRE</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="details">Détails</label>
+                    <textarea id="details" th:field="*{details}" required></textarea>
+                </div>
+                <button class="btn btn-navy" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('circle-alert')}"/> Signaler
+                </button>
+            </form>
+        </article>
+    </div>
+
+    <article class="card" style="margin-top:1rem;">
+        <h2>Historique par plaque</h2>
+        <form th:action="@{/borne/historique}" method="get" class="form" data-once>
+            <div class="field">
+                <label for="histPlaque">Immatriculation</label>
+                <input id="histPlaque" type="text" name="plaque" required/>
+            </div>
+            <button class="btn btn-ghost" type="submit">
+                <th:block th:replace="~{fragments/icons :: i('search')}"/> Consulter
+            </button>
+        </form>
+    </article>
+
+    <article class="card" style="margin-top:1rem;">
+        <h2>Sessions actives</h2>
+        <div th:if="${sessions == null or #lists.isEmpty(sessions)}" class="empty">
+            <th:block th:replace="~{fragments/icons :: i('arrow-left-right')}"/>
+            <p>Aucune session ouverte.</p>
+        </div>
+        <div class="table-wrap" th:unless="${sessions == null or #lists.isEmpty(sessions)}">
+            <table class="data">
+                <thead>
+                <tr>
+                    <th>Session</th>
+                    <th>Immatriculation</th>
+                    <th>Entrée</th>
+                    <th>Statut</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${sessions}">
+                    <td th:text="${s.entreeSortie_id}">1</td>
+                    <td th:text="${s.immatriculation}">ABC</td>
+                    <td th:text="${s.dateHeureEntree != null ? #temporals.format(s.dateHeureEntree, 'dd/MM/yyyy HH:mm') : '—'}">d</td>
+                    <td><span class="badge" th:text="${s.statut}">EN_COURS</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+</body>
+</html>

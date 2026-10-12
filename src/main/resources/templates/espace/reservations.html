@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Réservations', 'Espace client', 'reservations', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Nouvelle réservation</h2>
+            <p class="muted">La place est attribuée automatiquement : première place compatible libre sur le créneau. Le contrôle de disponibilité est effectué côté serveur.</p>
+            <form th:action="@{/espace/reservations}" th:object="${reservation}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="vehiculeId">Véhicule</label>
+                    <select id="vehiculeId" th:field="*{vehiculeId}" required>
+                        <option value="">Choisir</option>
+                        <option th:each="v : ${vehicules}" th:value="${v.vehicule_id}"
+                                th:text="${v.immatriculation} + ' — ' + ${v.marque} + ' ' + ${v.model}">ABC</option>
+                    </select>
+                    <span class="hint" th:if="${vehicules == null or #lists.isEmpty(vehicules)}">Enregistrez d’abord un véhicule.</span>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label for="debut">Arrivée</label>
+                        <input id="debut" type="datetime-local" th:field="*{debut}" required/>
+                    </div>
+                    <div class="field">
+                        <label for="fin">Départ</label>
+                        <input id="fin" type="datetime-local" th:field="*{fin}" required/>
+                    </div>
+                </div>
+                <button class="btn" type="submit" th:disabled="${vehicules == null or #lists.isEmpty(vehicules)}">
+                    <th:block th:replace="~{fragments/icons :: i('calendar-plus')}"/> Réserver
+                </button>
+            </form>
+        </article>
+        <article class="card">
+            <h2>Comment ça se passe</h2>
+            <ul class="muted">
+                <li>Durée et conflits vérifiés par le serveur.</li>
+                <li>La réservation est confirmée après paiement.</li>
+                <li>Aucun plan interactif de sélection : le backend choisit la place.</li>
+            </ul>
+        </article>
+    </div>
+
+    <article class="card" style="margin-top:1rem;">
+        <h2>Mes réservations</h2>
+        <div th:if="${reservations == null or #lists.isEmpty(reservations)}" class="empty">
+            <th:block th:replace="~{fragments/icons :: i('calendar-check')}"/>
+            <p>Aucune réservation.</p>
+        </div>
+        <div class="table-wrap" th:unless="${reservations == null or #lists.isEmpty(reservations)}">
+            <table class="data">
+                <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Place</th>
+                    <th>Véhicule</th>
+                    <th>Arrivée</th>
+                    <th>Départ</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${reservations}">
+                    <td th:text="${r.reservation_id}">1</td>
+                    <td th:text="${r.placeNumero}">A1</td>
+                    <td th:text="${r.immatriculation}">1234</td>
+                    <td th:text="${#temporals.format(r.date_heure_arrive, 'dd/MM/yyyy HH:mm')}">date</td>
+                    <td th:text="${#temporals.format(r.date_heure_depart, 'dd/MM/yyyy HH:mm')}">date</td>
+                    <td><span class="badge" th:text="${r.statut}">EN_ATTENTE</span></td>
+                    <td>
+                        <form th:if="${r.statut.name() == 'EN_ATTENTE' or r.statut.name() == 'CONFIRMEE'}"
+                              th:action="@{/espace/reservations/{id}/annuler(id=${r.reservation_id})}" method="post"
+                              data-once data-confirm="Annuler cette réservation ?">
+                            <button class="btn btn-ghost btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('x')}"/> Annuler
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+</body>
+</html>

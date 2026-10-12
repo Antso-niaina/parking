@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="navbar(title, crumb)" class="navbar">
+    <div class="navbar-title">
+        <button type="button" class="menu-toggle" data-sidebar-toggle aria-label="Ouvrir le menu" title="Ouvrir le menu">
+            <th:block th:replace="~{fragments/icons :: i('menu')}"/>
+        </button>
+        <div>
+            <p class="crumb" th:if="${crumb}" th:text="${crumb}">Espace</p>
+            <h1 th:text="${title}">Page</h1>
+        </div>
+    </div>
+    <div class="navbar-actions" th:if="${moi != null}">
+        <a th:if="${moi.type_client.name() == 'STANDAR' or moi.type_client.name() == 'VIP'}"
+           class="btn btn-ghost btn-icon" th:href="@{/espace/alertes}" title="Alertes" aria-label="Alertes">
+            <th:block th:replace="~{fragments/icons :: i('bell')}"/>
+        </a>
+        <a th:if="${moi.type_client.name() == 'ADMIN'}"
+           class="btn btn-ghost btn-icon" th:href="@{/admin/alertes}" title="Alertes" aria-label="Alertes">
+            <th:block th:replace="~{fragments/icons :: i('bell')}"/>
+        </a>
+        <span class="badge" th:text="${moi.type_client}">STANDAR</span>
+        <div class="profile-wrap" data-profile-menu>
+            <button type="button" class="btn btn-ghost" data-profile-toggle aria-expanded="false" aria-haspopup="true">
+                <th:block th:replace="~{fragments/icons :: i('user-round')}"/>
+                <span th:text="${moi.prenom}">Profil</span>
+            </button>
+            <div data-profile-panel hidden class="card profile-panel">
+                <div class="muted" th:text="${moi.email}">email</div>
+                <form class="mt" th:action="@{/logout}" method="post" data-once>
+                    <button class="btn btn-navy full" type="submit">
+                        <th:block th:replace="~{fragments/icons :: i('log-out')}"/> Se déconnecter
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+</body>
+</html>

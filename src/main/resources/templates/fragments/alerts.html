@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="alerts" class="alerts">
+    <div th:if="${message}" class="alert alert-ok" role="status">
+        <th:block th:replace="~{fragments/icons :: i('circle-check')}"/>
+        <div th:text="${message}">Message</div>
+    </div>
+    <div th:if="${erreur}" class="alert alert-err" role="alert">
+        <th:block th:replace="~{fragments/icons :: i('circle-alert')}"/>
+        <div th:text="${erreur}">Erreur</div>
+    </div>
+</div>
+</body>
+</html>

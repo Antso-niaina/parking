@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Justificatif PMR', 'Espace client', 'justificatif', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Déposer un justificatif</h2>
+            <form th:action="@{/espace/justificatif}" th:object="${justificatif}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="numeroCarte">Numéro de carte</label>
+                    <input id="numeroCarte" type="text" th:field="*{numeroCarte}" required/>
+                </div>
+                <div class="field">
+                    <label for="dateExpiration">Date d’expiration</label>
+                    <input id="dateExpiration" type="date" th:field="*{dateExpiration}"/>
+                </div>
+                <button class="btn" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('plus')}"/> Déposer
+                </button>
+            </form>
+        </article>
+        <article class="card">
+            <h2>Mes justificatifs</h2>
+            <div th:if="${justificatifs == null or #lists.isEmpty(justificatifs)}" class="empty">
+                <th:block th:replace="~{fragments/icons :: i('shield')}"/>
+                <p>Aucun justificatif déposé.</p>
+            </div>
+            <div class="table-wrap" th:unless="${justificatifs == null or #lists.isEmpty(justificatifs)}">
+                <table class="data">
+                    <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Carte</th>
+                        <th>Expiration</th>
+                        <th>Statut</th>
+                        <th>Dépôt</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="j : ${justificatifs}">
+                        <td th:text="${j.justificatifId()}">1</td>
+                        <td th:text="${j.numeroCarte()}">n</td>
+                        <td th:text="${j.dateExpiration()}">d</td>
+                        <td><span class="badge" th:text="${j.statut()}">EN_ATTENTE</span></td>
+                        <td th:text="${j.dateDepot() != null ? #temporals.format(j.dateDepot(), 'dd/MM/yyyy') : '—'}">d</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </div>
+</section>
+</body>
+</html>

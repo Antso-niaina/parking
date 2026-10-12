@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Reçu', 'Espace client', 'paiements', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <article class="card recu" th:if="${recu != null}">
+        <header>
+            <div>
+                <h2>Toerako</h2>
+                <p class="muted">Reçu de paiement</p>
+            </div>
+            <div>
+                <strong th:text="${recu.numero()}">REC</strong>
+            </div>
+        </header>
+        <dl>
+            <dt>Date</dt>
+            <dd th:text="${#temporals.format(recu.date(), 'dd/MM/yyyy HH:mm')}">date</dd>
+            <dt>Client</dt>
+            <dd th:text="${recu.client()}">client</dd>
+            <dt>Objet</dt>
+            <dd th:text="${recu.objet()}">objet</dd>
+            <dt>Montant</dt>
+            <dd th:text="${recu.montant()}">0</dd>
+            <dt>Remboursé</dt>
+            <dd th:text="${recu.montantRembourse()}">0</dd>
+            <dt>Statut</dt>
+            <dd><span class="badge badge-ok" th:text="${recu.statut()}">PAYEE</span></dd>
+        </dl>
+        <p style="margin-top:1.2rem;">
+            <a class="btn btn-ghost" th:href="@{/espace/paiements}">
+                <th:block th:replace="~{fragments/icons :: i('arrow-left-right')}"/> Retour aux paiements
+            </a>
+        </p>
+    </article>
+</section>
+</body>
+</html>

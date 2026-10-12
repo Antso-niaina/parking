@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Encaissement sortie', 'Accès parking', 'borne', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <article class="card recu">
+        <h2>Montant à encaisser</h2>
+        <p class="lead muted">Étape 1 : le montant a été calculé par le serveur. Validez l’encaissement pour ouvrir la barrière.</p>
+        <p>
+            <strong th:text="${montantDu}">0</strong>
+        </p>
+        <form th:action="@{/borne/sortie}" method="post" class="form" data-once
+              th:object="${sortie}" th:if="${sortie != null}">
+            <input type="hidden" th:field="*{plaque}"/>
+            <input type="hidden" th:field="*{ticketPerdu}"/>
+            <button class="btn" type="submit">
+                <th:block th:replace="~{fragments/icons :: i('check')}"/> Encaisser et enregistrer la sortie
+            </button>
+        </form>
+        <form th:action="@{/borne/sortie}" method="post" class="form" data-once th:if="${sortie == null}">
+            <div class="field">
+                <label for="plaque">Immatriculation</label>
+                <input id="plaque" name="plaque" type="text" required/>
+            </div>
+            <label class="check">
+                <input type="checkbox" name="ticketPerdu" value="true"/>
+                Ticket perdu
+            </label>
+            <button class="btn" type="submit">Encaisser et enregistrer la sortie</button>
+        </form>
+        <p><a class="btn btn-ghost" th:href="@{/borne}">Retour à la borne</a></p>
+    </article>
+</section>
+</body>
+</html>

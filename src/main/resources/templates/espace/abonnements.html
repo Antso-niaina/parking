@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Abonnements', 'Espace client', 'abonnements', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Souscrire</h2>
+            <form th:action="@{/espace/abonnements}" th:object="${abonnement}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="vehiculeIds">Véhicules concernés</label>
+                    <select id="vehiculeIds" th:field="*{vehiculeIds}" multiple size="4" required>
+                        <option th:each="v : ${vehicules}" th:value="${v.vehicule_id}"
+                                th:text="${v.immatriculation} + ' — ' + ${v.marque}">ABC</option>
+                    </select>
+                    <span class="hint">Maintenez Ctrl (ou Cmd) pour en sélectionner plusieurs.</span>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label for="formule">Formule</label>
+                        <select id="formule" th:field="*{formule}" required>
+                            <option value="">Choisir</option>
+                            <option th:each="f : ${formules}" th:value="${f}" th:text="${f}">COMPLET</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="duree">Durée</label>
+                        <select id="duree" th:field="*{duree}" required>
+                            <option value="">Choisir</option>
+                            <option th:each="d : ${durees}" th:value="${d}" th:text="${d}">MENSUEL</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="dateDebut">Date de début</label>
+                    <input id="dateDebut" type="datetime-local" th:field="*{dateDebut}" required/>
+                </div>
+                <label class="check">
+                    <input type="checkbox" th:field="*{renouvellementAuto}"/>
+                    Renouvellement automatique
+                </label>
+                <button class="btn" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('plus')}"/> Souscrire
+                </button>
+            </form>
+        </article>
+        <article class="card">
+            <h2>Mes abonnements</h2>
+            <div th:if="${abonnements == null or #lists.isEmpty(abonnements)}" class="empty">
+                <th:block th:replace="~{fragments/icons :: i('credit-card')}"/>
+                <p>Aucun abonnement.</p>
+            </div>
+            <div class="table-wrap" th:unless="${abonnements == null or #lists.isEmpty(abonnements)}">
+                <table class="data">
+                    <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Formule</th>
+                        <th>Durée</th>
+                        <th>Période</th>
+                        <th>Statut</th>
+                        <th>Paiement</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="a : ${abonnements}">
+                        <td th:text="${a.abonnement_id}">1</td>
+                        <td th:text="${a.formule}">COMPLET</td>
+                        <td th:text="${a.type_abonnements}">MENSUEL</td>
+                        <td>
+                            <span th:text="${#temporals.format(a.date_debut, 'dd/MM/yyyy')}">d</span>
+                            —
+                            <span th:text="${#temporals.format(a.date_fin, 'dd/MM/yyyy')}">f</span>
+                        </td>
+                        <td><span class="badge" th:text="${a.statutAbonnement}">ACTIF</span></td>
+                        <td><span class="badge" th:text="${a.statutPaiement}">EN_ATTENTE</span></td>
+                        <td class="row-actions">
+                            <form th:action="@{/espace/abonnements/{id}/renouveler(id=${a.abonnement_id})}" method="post" data-once>
+                                <button class="btn btn-ghost btn-sm" type="submit">
+                                    <th:block th:replace="~{fragments/icons :: i('refresh-cw')}"/> Renouveler
+                                </button>
+                            </form>
+                            <form th:action="@{/espace/abonnements/{id}/resilier(id=${a.abonnement_id})}" method="post"
+                                  data-once data-confirm="Résilier cet abonnement ?">
+                                <button class="btn btn-ghost btn-sm" type="submit">
+                                    <th:block th:replace="~{fragments/icons :: i('x')}"/> Résilier
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </div>
+</section>
+</body>
+</html>

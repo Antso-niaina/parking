@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="sidebar(nav)" class="sidebar" data-sidebar aria-label="Navigation principale">
+    <a class="brand" th:href="@{/}">
+        <span class="brand-mark"><th:block th:replace="~{fragments/icons :: i('square-parking')}"/></span>
+        <span>
+            <strong>Toerako</strong>
+            <small>Stationnement</small>
+        </span>
+    </a>
+
+    <nav class="nav">
+        <th:block th:if="${moi != null and moi.type_client.name() == 'ADMIN'}">
+            <div class="nav-label">Administration</div>
+            <a class="nav-link" th:classappend="${nav == 'admin'} ? 'is-active'" th:href="@{/admin}">
+                <th:block th:replace="~{fragments/icons :: i('layout-dashboard')}"/> Tableau de bord
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'places'} ? 'is-active'" th:href="@{/admin/places}">
+                <th:block th:replace="~{fragments/icons :: i('square-parking')}"/> Places
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'zones'} ? 'is-active'" th:href="@{/admin/zones}">
+                <th:block th:replace="~{fragments/icons :: i('map')}"/> Zones
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'tarifs'} ? 'is-active'" th:href="@{/admin/tarifs}">
+                <th:block th:replace="~{fragments/icons :: i('calculator')}"/> Tarifs
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'justificatifs-admin'} ? 'is-active'" th:href="@{/admin/justificatifs}">
+                <th:block th:replace="~{fragments/icons :: i('file-check')}"/> Justificatifs PMR
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'paiements-admin'} ? 'is-active'" th:href="@{/admin/paiements}">
+                <th:block th:replace="~{fragments/icons :: i('wallet')}"/> Paiements
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'alertes-admin'} ? 'is-active'" th:href="@{/admin/alertes}">
+                <th:block th:replace="~{fragments/icons :: i('bell')}"/> Alertes
+            </a>
+        </th:block>
+
+        <th:block th:if="${moi != null and moi.type_client.name() == 'BORNE'}">
+            <div class="nav-label">Borne</div>
+            <a class="nav-link" th:classappend="${nav == 'borne'} ? 'is-active'" th:href="@{/borne}">
+                <th:block th:replace="~{fragments/icons :: i('arrow-left-right')}"/> Entrées et sorties
+            </a>
+        </th:block>
+
+        <th:block th:if="${moi != null and (moi.type_client.name() == 'STANDAR' or moi.type_client.name() == 'VIP')}">
+            <div class="nav-label">Espace client</div>
+            <a class="nav-link" th:classappend="${nav == 'accueil'} ? 'is-active'" th:href="@{/espace}">
+                <th:block th:replace="~{fragments/icons :: i('layout-dashboard')}"/> Tableau de bord
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'reservations'} ? 'is-active'" th:href="@{/espace/reservations}">
+                <th:block th:replace="~{fragments/icons :: i('calendar-check')}"/> Réservations
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'vehicules'} ? 'is-active'" th:href="@{/espace/vehicules}">
+                <th:block th:replace="~{fragments/icons :: i('car-front')}"/> Véhicules
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'abonnements'} ? 'is-active'" th:href="@{/espace/abonnements}">
+                <th:block th:replace="~{fragments/icons :: i('credit-card')}"/> Abonnements
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'paiements'} ? 'is-active'" th:href="@{/espace/paiements}">
+                <th:block th:replace="~{fragments/icons :: i('wallet')}"/> Paiements
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'alertes'} ? 'is-active'" th:href="@{/espace/alertes}">
+                <th:block th:replace="~{fragments/icons :: i('bell')}"/> Alertes
+            </a>
+            <a class="nav-link" th:classappend="${nav == 'justificatif'} ? 'is-active'" th:href="@{/espace/justificatif}">
+                <th:block th:replace="~{fragments/icons :: i('shield')}"/> Justificatif PMR
+            </a>
+        </th:block>
+    </nav>
+
+    <div class="sidebar-foot" th:if="${moi != null}">
+        <div class="who">
+            <div class="who-avatar" th:text="${#strings.substring(moi.prenom,0,1)} + ${#strings.substring(moi.nom,0,1)}">JD</div>
+            <div>
+                <strong th:text="${moi.prenom} + ' ' + ${moi.nom}">Utilisateur</strong>
+                <span th:text="${moi.email}">email</span>
+            </div>
+        </div>
+        <form th:action="@{/logout}" method="post" data-once>
+            <button class="btn btn-ghost btn-side-out" type="submit">
+                <th:block th:replace="~{fragments/icons :: i('log-out')}"/> Se déconnecter
+            </button>
+        </form>
+    </div>
+</aside>
+</body>
+</html>

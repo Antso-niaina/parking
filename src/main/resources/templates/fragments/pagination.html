@@ -1,0 +1,7 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Réservé : les listes actuelles ne sont pas paginées côté serveur. -->
+<nav th:fragment="pager" th:if="${page != null}" class="muted" aria-label="Pagination"></nav>
+</body>
+</html>

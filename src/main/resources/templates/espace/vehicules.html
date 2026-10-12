@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Véhicules', 'Espace client', 'vehicules', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Ajouter un véhicule</h2>
+            <form th:action="@{/espace/vehicules}" th:object="${vehicule}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="immatriculation">Immatriculation</label>
+                    <input id="immatriculation" type="text" th:field="*{immatriculation}" maxlength="10" required/>
+                </div>
+                <div class="field">
+                    <label for="type">Type</label>
+                    <select id="type" th:field="*{type}" required>
+                        <option value="">Choisir</option>
+                        <option th:each="t : ${types}" th:value="${t}" th:text="${t}">VOITURE</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label for="marque">Marque</label>
+                        <input id="marque" type="text" th:field="*{marque}" required/>
+                    </div>
+                    <div class="field">
+                        <label for="model">Modèle</label>
+                        <input id="model" type="text" th:field="*{model}" required/>
+                    </div>
+                </div>
+                <button class="btn" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('plus')}"/> Enregistrer
+                </button>
+            </form>
+        </article>
+        <article class="card">
+            <h2>Mes véhicules</h2>
+            <div th:if="${vehicules == null or #lists.isEmpty(vehicules)}" class="empty">
+                <th:block th:replace="~{fragments/icons :: i('car-front')}"/>
+                <p>Aucun véhicule enregistré.</p>
+            </div>
+            <div class="table-wrap" th:unless="${vehicules == null or #lists.isEmpty(vehicules)}">
+                <table class="data">
+                    <thead>
+                    <tr>
+                        <th>Immatriculation</th>
+                        <th>Type</th>
+                        <th>Marque</th>
+                        <th>Modèle</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="v : ${vehicules}">
+                        <td th:text="${v.immatriculation}">1234</td>
+                        <td><span class="badge" th:text="${v.type_vehicule}">VOITURE</span></td>
+                        <td th:text="${v.marque}">Marque</td>
+                        <td th:text="${v.model}">Modèle</td>
+                        <td>
+                            <form th:action="@{/espace/vehicules/{id}/supprimer(id=${v.vehicule_id})}" method="post"
+                                  data-once data-confirm="Supprimer ce véhicule ?">
+                                <button class="btn btn-ghost btn-icon" type="submit" title="Supprimer" aria-label="Supprimer">
+                                    <th:block th:replace="~{fragments/icons :: i('trash-2')}"/>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </div>
+</section>
+</body>
+</html>

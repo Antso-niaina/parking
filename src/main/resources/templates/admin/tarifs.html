@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Tarifs', 'Administration', 'tarifs', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <article class="card">
+        <h2>Grille tarifaire</h2>
+        <form th:action="@{/admin/tarifs}" th:object="${tarif}" method="post" class="form" data-once>
+            <div class="form-row">
+                <div class="field">
+                    <label for="tarifHoraire">Tarif horaire</label>
+                    <input id="tarifHoraire" type="number" step="0.01" min="0" th:field="*{tarifHoraire}" required/>
+                </div>
+                <div class="field">
+                    <label for="forfaitJournalier">Forfait journalier</label>
+                    <input id="forfaitJournalier" type="number" step="0.01" min="0" th:field="*{forfaitJournalier}" required/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label for="dateDebutValidite">Début de validité</label>
+                    <input id="dateDebutValidite" type="datetime-local" th:field="*{dateDebutValidite}" required/>
+                </div>
+                <div class="field">
+                    <label for="dateFinValidite">Fin de validité</label>
+                    <input id="dateFinValidite" type="datetime-local" th:field="*{dateFinValidite}" required/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label for="franchiseMinutes">Franchise (minutes)</label>
+                    <input id="franchiseMinutes" type="number" min="0" th:field="*{franchiseMinutes}"/>
+                </div>
+                <div class="field">
+                    <label for="reductionAbonnePourcentage">Réduction abonné (%)</label>
+                    <input id="reductionAbonnePourcentage" type="number" step="0.1" min="0" max="100" th:field="*{reductionAbonnePourcentage}"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label for="majorationNuitPourcentage">Majoration nuit (%)</label>
+                    <input id="majorationNuitPourcentage" type="number" step="0.1" min="0" max="100" th:field="*{majorationNuitPourcentage}"/>
+                </div>
+                <div class="field">
+                    <label for="majorationWeekendPourcentage">Majoration week-end (%)</label>
+                    <input id="majorationWeekendPourcentage" type="number" step="0.1" min="0" max="100" th:field="*{majorationWeekendPourcentage}"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label for="reductionPmrPourcentage">Réduction PMR (%)</label>
+                    <input id="reductionPmrPourcentage" type="number" step="0.1" min="0" max="100" th:field="*{reductionPmrPourcentage}"/>
+                </div>
+                <div class="field">
+                    <label for="reductionVipPourcentage">Réduction VIP (%)</label>
+                    <input id="reductionVipPourcentage" type="number" step="0.1" min="0" max="100" th:field="*{reductionVipPourcentage}"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label for="penaliteDepassementHoraire">Pénalité dépassement</label>
+                    <input id="penaliteDepassementHoraire" type="number" step="0.01" min="0" th:field="*{penaliteDepassementHoraire}"/>
+                </div>
+                <div class="field">
+                    <label for="penaliteNoShow">Pénalité no-show</label>
+                    <input id="penaliteNoShow" type="number" step="0.01" min="0" th:field="*{penaliteNoShow}"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label for="penaliteTicketPerdu">Pénalité ticket perdu</label>
+                    <input id="penaliteTicketPerdu" type="number" step="0.01" min="0" th:field="*{penaliteTicketPerdu}"/>
+                </div>
+                <div class="field">
+                    <label for="penaliteMauvaisePlace">Pénalité mauvaise place</label>
+                    <input id="penaliteMauvaisePlace" type="number" step="0.01" min="0" th:field="*{penaliteMauvaisePlace}"/>
+                </div>
+            </div>
+            <label class="check">
+                <input type="checkbox" th:field="*{actif}"/>
+                Grille active
+            </label>
+            <button class="btn" type="submit">
+                <th:block th:replace="~{fragments/icons :: i('check')}"/> Enregistrer la grille
+            </button>
+        </form>
+        <p class="muted" style="margin-top:.8rem;">Les coefficients véhicule/place ne sont pas éditables ici : le formulaire MVC n’expose pas de saisie structurée pour ces maps.</p>
+    </article>
+
+    <article class="card" style="margin-top:1rem;">
+        <h2>Historique</h2>
+        <div th:if="${historique == null or #lists.isEmpty(historique)}" class="empty">
+            <p>Aucun tarif enregistré.</p>
+        </div>
+        <div class="table-wrap" th:unless="${historique == null or #lists.isEmpty(historique)}">
+            <table class="data">
+                <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Horaire</th>
+                    <th>Journalier</th>
+                    <th>Début</th>
+                    <th>Fin</th>
+                    <th>Actif</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="h : ${historique}">
+                    <td th:text="${h.tarif_id}">1</td>
+                    <td th:text="${h.tarifHoraire}">0</td>
+                    <td th:text="${h.forfaitJournalier}">0</td>
+                    <td th:text="${h.dateDebutValidite != null ? #temporals.format(h.dateDebutValidite, 'dd/MM/yyyy HH:mm') : '—'}">d</td>
+                    <td th:text="${h.dateFinValidite != null ? #temporals.format(h.dateFinValidite, 'dd/MM/yyyy HH:mm') : '—'}">f</td>
+                    <td><span class="badge" th:text="${h.actif} ? 'Oui' : 'Non'">Oui</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+</body>
+</html>

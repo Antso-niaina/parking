@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Paiements', 'Espace client', 'paiements', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Nouveau paiement</h2>
+            <p class="muted">Indiquez le montant, le type (réservation ou abonnement) et l’identifiant de la cible. Le paiement reste en attente jusqu’à validation.</p>
+            <form th:action="@{/espace/paiements}" th:object="${paiement}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="montant">Montant</label>
+                    <input id="montant" type="number" step="0.01" min="0.01" th:field="*{montant}" required/>
+                </div>
+                <div class="field">
+                    <label for="typePaiement">Type</label>
+                    <select id="typePaiement" th:field="*{typePaiement}" required>
+                        <option value="">Choisir</option>
+                        <option th:each="t : ${typesPaiement}" th:value="${t}" th:text="${t}">RESERVATION</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="cibleId">Identifiant de la cible</label>
+                    <input id="cibleId" type="number" th:field="*{cibleId}" required/>
+                    <span class="hint">Numéro de la réservation ou de l’abonnement à régler.</span>
+                </div>
+                <button class="btn" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('wallet')}"/> Enregistrer le paiement
+                </button>
+            </form>
+        </article>
+        <article class="card">
+            <h2>Historique</h2>
+            <div th:if="${paiements == null or #lists.isEmpty(paiements)}" class="empty">
+                <th:block th:replace="~{fragments/icons :: i('wallet')}"/>
+                <p>Aucun paiement.</p>
+            </div>
+            <div class="table-wrap" th:unless="${paiements == null or #lists.isEmpty(paiements)}">
+                <table class="data">
+                    <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Type</th>
+                        <th>Montant</th>
+                        <th>Remboursé</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th>Reçu</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${paiements}">
+                        <td th:text="${p.paiement_id}">1</td>
+                        <td th:text="${p.typePaiement}">RESERVATION</td>
+                        <td th:text="${p.montant}">0</td>
+                        <td th:text="${p.montantRembourse}">0</td>
+                        <td><span class="badge" th:text="${p.statut}">EN_ATTENTE</span></td>
+                        <td th:text="${p.dateCreation != null ? #temporals.format(p.dateCreation, 'dd/MM/yyyy HH:mm') : '—'}">date</td>
+                        <td>
+                            <a class="btn btn-ghost btn-sm"
+                               th:if="${p.statut != null and (p.statut.name() == 'PAYEE' or p.statut.name() == 'REMBOURSEE')}"
+                               th:href="@{/espace/paiements/{id}/recu(id=${p.paiement_id})}">
+                                <th:block th:replace="~{fragments/icons :: i('receipt-text')}"/> Reçu
+                            </a>
+                            <span class="muted" th:unless="${p.statut != null and (p.statut.name() == 'PAYEE' or p.statut.name() == 'REMBOURSEE')}">Indisponible</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </div>
+</section>
+</body>
+</html>

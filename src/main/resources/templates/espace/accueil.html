@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Tableau de bord', 'Espace client', 'accueil', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="page-head">
+        <div>
+            <h2 class="visually-hidden" style="position:absolute;left:-9999px;">Accueil</h2>
+            <p class="muted" th:if="${moi != null}" th:text="'Bonjour ' + ${moi.prenom} + '.'">Bonjour</p>
+        </div>
+        <a class="btn" th:href="@{/espace/reservations}">
+            <th:block th:replace="~{fragments/icons :: i('calendar-plus')}"/> Réserver une place
+        </a>
+    </div>
+
+    <div class="grid grid-4">
+        <article class="card stat">
+            <div class="stat-icon"><th:block th:replace="~{fragments/icons :: i('car-front')}"/></div>
+            <div>
+                <span>Véhicules</span>
+                <strong th:text="${vehicules != null ? #lists.size(vehicules) : 0}">0</strong>
+            </div>
+        </article>
+        <article class="card stat">
+            <div class="stat-icon"><th:block th:replace="~{fragments/icons :: i('calendar-check')}"/></div>
+            <div>
+                <span>Réservations</span>
+                <strong th:text="${reservations != null ? #lists.size(reservations) : 0}">0</strong>
+            </div>
+        </article>
+        <article class="card stat">
+            <div class="stat-icon"><th:block th:replace="~{fragments/icons :: i('credit-card')}"/></div>
+            <div>
+                <span>Abonnements</span>
+                <strong th:text="${abonnements != null ? #lists.size(abonnements) : 0}">0</strong>
+            </div>
+        </article>
+        <article class="card stat">
+            <div class="stat-icon"><th:block th:replace="~{fragments/icons :: i('receipt-text')}"/></div>
+            <div>
+                <span>Factures impayées</span>
+                <strong th:text="${impayes != null ? #lists.size(impayes) : 0}">0</strong>
+            </div>
+        </article>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:1rem;">
+        <article class="card">
+            <h3>Réservations récentes</h3>
+            <div th:if="${reservations == null or #lists.isEmpty(reservations)}" class="empty">
+                <th:block th:replace="~{fragments/icons :: i('calendar-check')}"/>
+                <p>Aucune réservation pour le moment.</p>
+            </div>
+            <ul class="list-plain" th:unless="${reservations == null or #lists.isEmpty(reservations)}">
+                <li th:each="r, iter : ${reservations}" th:if="${iter.index &lt; 5}">
+                    <div>
+                        <strong th:text="${r.placeNumero}">A1</strong>
+                        <div class="muted" th:text="${r.immatriculation}">1234</div>
+                    </div>
+                    <span class="badge" th:text="${r.statut}">EN_ATTENTE</span>
+                </li>
+            </ul>
+        </article>
+        <article class="card">
+            <h3>Alertes</h3>
+            <div th:if="${alertes == null or #lists.isEmpty(alertes)}" class="empty">
+                <th:block th:replace="~{fragments/icons :: i('bell')}"/>
+                <p>Aucune alerte.</p>
+            </div>
+            <ul class="list-plain" th:unless="${alertes == null or #lists.isEmpty(alertes)}">
+                <li th:each="a, iter : ${alertes}" th:if="${iter.index &lt; 5}">
+                    <div>
+                        <strong th:text="${a.typeAlerte}">TYPE</strong>
+                        <div class="muted" th:text="${a.message}">message</div>
+                    </div>
+                    <span class="badge" th:text="${a.lue} ? 'Lue' : 'Non lue'">Non lue</span>
+                </li>
+            </ul>
+        </article>
+    </div>
+
+    <article class="card" style="margin-top:1rem;" th:if="${impayes != null and !#lists.isEmpty(impayes)}">
+        <h3>Factures en attente</h3>
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Statut</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="f : ${impayes}">
+                    <td th:text="${f.facture_id}">1</td>
+                    <td th:text="${f.dateFacturation}">2026-01-01</td>
+                    <td th:text="${f.montantTotal}">0</td>
+                    <td><span class="badge badge-wait" th:text="${f.statutPaiement}">EN_ATTENTE</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+</body>
+</html>

@@ -1,0 +1,58 @@
+.auth {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 45% 1fr;
+    background: var(--white);
+}
+
+.auth-photo {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: var(--navy);
+}
+.auth-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+.auth-photo-copy {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 2.2rem;
+    color: var(--white);
+    background: linear-gradient(transparent, color-mix(in srgb, var(--navy) 82%, transparent));
+}
+.auth-photo-copy h1 { margin: 0 0 0.35rem; font-size: 2rem; }
+.auth-photo-copy .slogan { margin: 0 0 0.45rem; font-weight: 600; }
+.auth-photo-copy p { margin: 0; color: color-mix(in srgb, var(--white) 82%, transparent); }
+.photo-credit {
+    display: block;
+    margin-top: 0.8rem;
+    font-size: 0.72rem;
+    color: color-mix(in srgb, var(--white) 55%, transparent);
+}
+
+.auth-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2.5rem 8%;
+    background: var(--gray);
+}
+.auth-box {
+    background: var(--white);
+    border: 1px solid var(--navy-line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 1.8rem;
+    max-width: 28rem;
+    width: 100%;
+    margin: 0 auto;
+}
+.auth-box h2 { margin: 0 0 0.3rem; }
+.auth-box > .lead { margin: 0 0 1.2rem; color: var(--navy-muted); }
+.auth-actions { margin-top: 0.4rem; }
+.auth-actions .btn { width: 100%; }
+.auth-alt { margin-top: 1rem; text-align: center; color: var(--navy-muted); font-size: 0.9rem; }

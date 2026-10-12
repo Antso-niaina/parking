@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#1E293B"/>
+    <title th:text="${title} + ' — Toerako'">Toerako</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+    <link rel="stylesheet" th:href="@{/css/auth.css}"/>
+    <link rel="stylesheet" th:href="@{/css/parking-map.css}"/>
+    <link rel="stylesheet" th:href="@{/css/responsive.css}"/>
+</head>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Paiements en attente', 'Administration', 'paiements-admin', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <article class="card">
+        <h2>Paiements à traiter</h2>
+        <p class="muted">Cette page liste uniquement les paiements au statut EN_ATTENTE.</p>
+        <div th:if="${paiements == null or #lists.isEmpty(paiements)}" class="empty">
+            <th:block th:replace="~{fragments/icons :: i('wallet')}"/>
+            <p>Aucun paiement en attente.</p>
+        </div>
+        <div class="table-wrap" th:unless="${paiements == null or #lists.isEmpty(paiements)}">
+            <table class="data">
+                <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Client</th>
+                    <th>Type</th>
+                    <th>Cible</th>
+                    <th>Montant</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${paiements}">
+                    <td th:text="${p.paiement_id}">1</td>
+                    <td th:text="${p.clientId}">1</td>
+                    <td th:text="${p.typePaiement}">RESERVATION</td>
+                    <td th:text="${p.cibleId}">1</td>
+                    <td th:text="${p.montant}">0</td>
+                    <td th:text="${p.dateCreation != null ? #temporals.format(p.dateCreation, 'dd/MM/yyyy HH:mm') : '—'}">d</td>
+                    <td class="row-actions">
+                        <form th:action="@{/admin/paiements/{id}/valider(id=${p.paiement_id})}" method="post" data-once>
+                            <button class="btn btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('check')}"/> Valider
+                            </button>
+                        </form>
+                        <form th:action="@{/admin/paiements/{id}/echec(id=${p.paiement_id})}" method="post" data-once>
+                            <button class="btn btn-ghost btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('x')}"/> Échec
+                            </button>
+                        </form>
+                        <form th:action="@{/admin/paiements/{id}/rembourser(id=${p.paiement_id})}" method="post"
+                              data-once data-confirm="Rembourser ce paiement ?">
+                            <label class="visually-hidden" th:for="'mt-' + ${p.paiement_id}">Montant</label>
+                            <input th:id="'mt-' + ${p.paiement_id}" type="number" step="0.01" min="0" name="montant" placeholder="Montant"/>
+                            <button class="btn btn-ghost btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('refresh-cw')}"/> Rembourser
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{fragments/head :: head('Inscription')}"></head>
+<body>
+<main class="auth">
+    <section class="auth-photo" aria-label="Photographie d’un parking">
+        <img th:src="@{/images/parking-login.jpg}"
+             alt="Voitures stationnées dans un parking intérieur réel, allées éclairées."
+             width="1920" height="1280"/>
+        <div class="auth-photo-copy">
+            <h1>Toerako</h1>
+            <p class="slogan">Réservez, stationnez, avancez.</p>
+            <p>Une gestion simple et intelligente de votre stationnement.</p>
+        </div>
+    </section>
+    <section class="auth-panel">
+        <div class="auth-box">
+            <h2>Créer un compte</h2>
+            <p class="lead">Inscrivez-vous pour gérer vos véhicules et vos réservations.</p>
+
+            <div th:if="${erreur}" class="alert alert-err" role="alert">
+                <th:block th:replace="~{fragments/icons :: i('circle-alert')}"/>
+                <div th:text="${erreur}">Erreur</div>
+            </div>
+
+            <form th:action="@{/inscription}" th:object="${inscription}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="nom">Nom</label>
+                    <input id="nom" type="text" th:field="*{nom}" autocomplete="family-name" required/>
+                    <span class="field-error" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></span>
+                </div>
+                <div class="field">
+                    <label for="prenom">Prénom</label>
+                    <input id="prenom" type="text" th:field="*{prenom}" autocomplete="given-name" required/>
+                    <span class="field-error" th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}"></span>
+                </div>
+                <div class="field">
+                    <label for="email">Adresse e-mail</label>
+                    <input id="email" type="email" th:field="*{email}" autocomplete="email" required/>
+                    <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+                </div>
+                <div class="field">
+                    <label for="telephone">Téléphone</label>
+                    <input id="telephone" type="tel" th:field="*{telephone}" autocomplete="tel" required/>
+                    <span class="field-error" th:if="${#fields.hasErrors('telephone')}" th:errors="*{telephone}"></span>
+                </div>
+                <div class="field">
+                    <label for="mdp">Mot de passe</label>
+                    <div class="password-wrap">
+                        <input id="mdp" type="password" th:field="*{mdp}" autocomplete="new-password" minlength="8" required/>
+                        <button type="button" class="toggle-pass" data-toggle-password="mdp"
+                                aria-label="Afficher le mot de passe" title="Afficher le mot de passe" aria-pressed="false">
+                            <th:block th:replace="~{fragments/icons :: i('eye')}"/>
+                        </button>
+                    </div>
+                    <span class="hint">Au moins 8 caractères.</span>
+                    <span class="field-error" th:if="${#fields.hasErrors('mdp')}" th:errors="*{mdp}"></span>
+                </div>
+                <div class="auth-actions">
+                    <button class="btn" type="submit">
+                        <th:block th:replace="~{fragments/icons :: i('plus')}"/> S’inscrire
+                    </button>
+                </div>
+            </form>
+            <p class="auth-alt">
+                Déjà inscrit ?
+                <a th:href="@{/login}">Se connecter</a>
+            </p>
+        </div>
+    </section>
+</main>
+<script th:src="@{/js/forms.js}"></script>
+</body>
+</html>

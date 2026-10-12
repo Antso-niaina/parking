@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{fragments/head :: head('Connexion')}"></head>
+<body>
+<main class="auth">
+    <section class="auth-photo" aria-label="Photographie d’un parking">
+        <img th:src="@{/images/parking-login.jpg}"
+             alt="Voitures stationnées dans un parking intérieur réel, allées éclairées."
+             width="1920" height="1280"/>
+        <div class="auth-photo-copy">
+            <h1>Toerako</h1>
+            <p class="slogan">Réservez, stationnez, avancez.</p>
+            <p>Une gestion simple et intelligente de votre stationnement.</p>
+            <span class="photo-credit">Photographie : Unsplash (photo 1506521781263), licence Unsplash.</span>
+        </div>
+    </section>
+    <section class="auth-panel">
+        <div class="auth-box">
+            <h2>Bienvenue sur Toerako</h2>
+            <p class="lead">Connectez-vous avec l’adresse e-mail de votre compte.</p>
+
+            <div th:if="${param.error}" class="alert alert-err" role="alert">
+                <th:block th:replace="~{fragments/icons :: i('circle-alert')}"/>
+                <div>Identifiants incorrects ou compte indisponible. Vérifiez l’e-mail et le mot de passe.</div>
+            </div>
+            <div th:if="${param.logout}" class="alert alert-ok" role="status">
+                <th:block th:replace="~{fragments/icons :: i('circle-check')}"/>
+                <div>Vous êtes déconnecté.</div>
+            </div>
+            <div th:if="${param.inscrit}" class="alert alert-ok" role="status">
+                <th:block th:replace="~{fragments/icons :: i('circle-check')}"/>
+                <div>Compte créé. Vous pouvez vous connecter.</div>
+            </div>
+
+            <form th:action="@{/login}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="username">Adresse e-mail</label>
+                    <input id="username" name="username" type="email" autocomplete="username" required autofocus/>
+                </div>
+                <div class="field">
+                    <label for="password">Mot de passe</label>
+                    <div class="password-wrap">
+                        <input id="password" name="password" type="password" autocomplete="current-password" required/>
+                        <button type="button" class="toggle-pass" data-toggle-password="password"
+                                aria-label="Afficher le mot de passe" title="Afficher le mot de passe" aria-pressed="false">
+                            <th:block th:replace="~{fragments/icons :: i('eye')}"/>
+                        </button>
+                    </div>
+                </div>
+                <div class="auth-actions">
+                    <button class="btn" type="submit">
+                        <th:block th:replace="~{fragments/icons :: i('lock-keyhole')}"/> Se connecter
+                    </button>
+                </div>
+            </form>
+            <p class="auth-alt">
+                Pas encore de compte ?
+                <a th:href="@{/inscription}">Créer un compte</a>
+            </p>
+        </div>
+    </section>
+</main>
+<script th:src="@{/js/forms.js}"></script>
+</body>
+</html>

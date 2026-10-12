@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{fragments/head :: head('Erreur')}"></head>
+<body>
+<main class="auth-panel" style="min-height:100vh;">
+    <div class="auth-box">
+        <h2>Une erreur s’est produite</h2>
+        <p class="lead">
+            <span th:if="${status}" th:text="'Code ' + ${status}">Erreur</span>
+            <span th:if="${error}" th:text="' — ' + ${error}"></span>
+        </p>
+        <p class="muted">La page demandée n’est pas disponible ou l’action n’a pas pu aboutir.</p>
+        <p style="margin-top:1rem;">
+            <a class="btn" th:href="@{/}">Retour à l’accueil</a>
+        </p>
+    </div>
+</main>
+</body>
+</html>

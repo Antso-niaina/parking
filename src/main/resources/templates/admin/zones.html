@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Zones', 'Administration', 'zones', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Créer une zone</h2>
+            <form th:action="@{/admin/zones}" th:object="${zone}" method="post" class="form" data-once>
+                <div class="field">
+                    <label for="nom">Nom</label>
+                    <input id="nom" type="text" th:field="*{nom}" required/>
+                </div>
+                <div class="field">
+                    <label for="description">Description</label>
+                    <textarea id="description" th:field="*{description}"></textarea>
+                </div>
+                <div class="field">
+                    <label for="capaciteTotal">Capacité totale</label>
+                    <input id="capaciteTotal" type="number" min="1" th:field="*{capaciteTotal}" required/>
+                </div>
+                <button class="btn" type="submit">
+                    <th:block th:replace="~{fragments/icons :: i('plus')}"/> Créer
+                </button>
+            </form>
+        </article>
+        <article class="card">
+            <h2>Zones existantes</h2>
+            <div th:if="${zones == null or #lists.isEmpty(zones)}" class="empty">
+                <th:block th:replace="~{fragments/icons :: i('map')}"/>
+                <p>Aucune zone.</p>
+            </div>
+            <div th:each="z : ${zones}" class="card" style="margin-bottom:.8rem; box-shadow:none;">
+                <form th:action="@{/admin/zones/{id}(id=${z.zone_id})}" method="post" class="form" data-once>
+                    <div class="form-row">
+                        <div class="field">
+                            <label th:for="'znom-' + ${z.zone_id}">Nom</label>
+                            <input th:id="'znom-' + ${z.zone_id}" type="text" name="nom" th:value="${z.nom}" required/>
+                        </div>
+                        <div class="field">
+                            <label th:for="'zcap-' + ${z.zone_id}">Capacité</label>
+                            <input th:id="'zcap-' + ${z.zone_id}" type="number" min="1" name="capaciteTotal" th:value="${z.capaciteTotal}" required/>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label th:for="'zdesc-' + ${z.zone_id}">Description</label>
+                        <textarea th:id="'zdesc-' + ${z.zone_id}" name="description" th:text="${z.description}"></textarea>
+                    </div>
+                    <div class="row-actions">
+                        <button class="btn btn-sm" type="submit">
+                            <th:block th:replace="~{fragments/icons :: i('pencil')}"/> Enregistrer
+                        </button>
+                    </div>
+                </form>
+                <form th:action="@{/admin/zones/{id}/supprimer(id=${z.zone_id})}" method="post"
+                      data-once data-confirm="Supprimer cette zone ?" style="margin-top:.5rem;">
+                    <button class="btn btn-ghost btn-sm" type="submit">
+                        <th:block th:replace="~{fragments/icons :: i('trash-2')}"/> Supprimer
+                    </button>
+                </form>
+            </div>
+        </article>
+    </div>
+</section>
+</body>
+</html>

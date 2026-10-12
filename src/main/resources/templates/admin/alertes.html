@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Alertes', 'Administration', 'alertes-admin', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <div class="page-head">
+        <h2 style="margin:0;font-size:1rem;">Alertes administrateur</h2>
+        <form th:action="@{/admin/places-prioritaires/detection}" method="post" data-once>
+            <button class="btn btn-ghost" type="submit">
+                <th:block th:replace="~{fragments/icons :: i('search')}"/> Détecter occupations illégitimes
+            </button>
+        </form>
+    </div>
+    <article class="card">
+        <div th:if="${alertes == null or #lists.isEmpty(alertes)}" class="empty">
+            <th:block th:replace="~{fragments/icons :: i('bell')}"/>
+            <p>Aucune alerte.</p>
+        </div>
+        <div class="table-wrap" th:unless="${alertes == null or #lists.isEmpty(alertes)}">
+            <table class="data">
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Message</th>
+                    <th>Date</th>
+                    <th>État</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${alertes}">
+                    <td><span class="badge" th:text="${a.typeAlerte}">TYPE</span></td>
+                    <td th:text="${a.message}">message</td>
+                    <td th:text="${a.dateCreation != null ? #temporals.format(a.dateCreation, 'dd/MM/yyyy HH:mm') : '—'}">d</td>
+                    <td><span class="badge" th:text="${a.lue} ? 'Lue' : 'Non lue'">Non lue</span></td>
+                    <td>
+                        <form th:if="${!a.lue}" th:action="@{/admin/alertes/{id}/lue(id=${a.alerte_id})}" method="post" data-once>
+                            <button class="btn btn-ghost btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('check')}"/> Marquer comme lue
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+</body>
+</html>

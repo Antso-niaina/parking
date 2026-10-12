@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Tableau de bord', 'Administration', 'admin', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <form class="card form" method="get" th:action="@{/admin}" data-once>
+        <div class="form-row">
+            <div class="field">
+                <label for="debut">Début</label>
+                <input id="debut" type="date" name="debut" th:value="${debut}"/>
+            </div>
+            <div class="field">
+                <label for="fin">Fin</label>
+                <input id="fin" type="date" name="fin" th:value="${fin}"/>
+            </div>
+        </div>
+        <button class="btn" type="submit">
+            <th:block th:replace="~{fragments/icons :: i('search')}"/> Filtrer la période
+        </button>
+    </form>
+
+    <div class="grid grid-4" style="margin-top:1rem;" th:if="${tableau != null}">
+        <article class="card stat">
+            <div class="stat-icon"><th:block th:replace="~{fragments/icons :: i('square-parking')}"/></div>
+            <div>
+                <span>Taux d’occupation</span>
+                <strong th:text="${#numbers.formatDecimal(tableau.tauxOccupation(), 1, 2)} + ' %'">0 %</strong>
+            </div>
+        </article>
+        <article class="card stat">
+            <div class="stat-icon"><th:block th:replace="~{fragments/icons :: i('arrow-left-right')}"/></div>
+            <div>
+                <span>Sessions actives</span>
+                <strong th:text="${tableau.sessionsActives()}">0</strong>
+            </div>
+        </article>
+        <article class="card stat">
+            <div class="stat-icon"><th:block th:replace="~{fragments/icons :: i('wallet')}"/></div>
+            <div>
+                <span>Chiffre d’affaires</span>
+                <strong th:text="${tableau.chiffreAffaires()}">0</strong>
+            </div>
+        </article>
+        <article class="card stat">
+            <div class="stat-icon"><th:block th:replace="~{fragments/icons :: i('clock')}"/></div>
+            <div>
+                <span>Durée moyenne (min)</span>
+                <strong th:text="${tableau.dureeMoyenneMinutes()}">0</strong>
+            </div>
+        </article>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:1rem;">
+        <article class="card">
+            <h3>Occupation par type de place</h3>
+            <div class="chart" th:if="${tableau != null}">
+                <div class="chart-row" th:each="e : ${tableau.tauxOccupationParType()}">
+                    <span th:text="${e.key}">STANDARD</span>
+                    <div class="chart-track"><div class="chart-fill" th:attr="data-chart-fill=${e.value}"></div></div>
+                    <span th:text="${#numbers.formatDecimal(e.value, 1, 1)} + ' %'">0 %</span>
+                </div>
+            </div>
+        </article>
+        <article class="card">
+            <h3>CA par type de paiement</h3>
+            <div class="chart" data-bar-group th:if="${tableau != null}">
+                <div class="chart-row" th:each="e : ${tableau.chiffreAffairesParType()}">
+                    <span th:text="${e.key}">SESSION</span>
+                    <div class="chart-track"><div class="chart-fill is-navy" th:attr="data-bar-value=${e.value}"></div></div>
+                    <span th:text="${e.value}">0</span>
+                </div>
+            </div>
+        </article>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:1rem;">
+        <article class="card">
+            <h3>Occupation par zone</h3>
+            <div th:if="${zones == null or #lists.isEmpty(zones)}" class="empty">
+                <p>Aucune zone.</p>
+            </div>
+            <div class="table-wrap" th:unless="${zones == null or #lists.isEmpty(zones)}">
+                <table class="data">
+                    <thead>
+                    <tr>
+                        <th>Zone</th>
+                        <th>Places</th>
+                        <th>Occupées</th>
+                        <th>Hors service</th>
+                        <th>Occupation</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="z : ${zones}">
+                        <td th:text="${z.nom()}">Zone</td>
+                        <td th:text="${z.nbPlaces()}">0</td>
+                        <td th:text="${z.placesOccupees()}">0</td>
+                        <td th:text="${z.placesHorsService()}">0</td>
+                        <td th:text="${#numbers.formatDecimal(z.tauxOccupation(), 1, 1)} + ' %'">0 %</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+        <article class="card">
+            <h3>Fréquentation par heure</h3>
+            <div class="chart" data-bar-group th:if="${frequentationParHeure != null}">
+                <div class="chart-row" th:each="e : ${frequentationParHeure}">
+                    <span th:text="${e.key} + ' h'">0 h</span>
+                    <div class="chart-track"><div class="chart-fill" th:attr="data-bar-value=${e.value}"></div></div>
+                    <span th:text="${e.value}">0</span>
+                </div>
+            </div>
+        </article>
+    </div>
+
+    <article class="card" style="margin-top:1rem;">
+        <h3>Chiffre d’affaires par jour</h3>
+        <div th:if="${caParJour == null or #maps.isEmpty(caParJour)}" class="empty">
+            <p>Aucun encaissement sur la période.</p>
+        </div>
+        <div class="chart" data-bar-group th:unless="${caParJour == null or #maps.isEmpty(caParJour)}">
+            <div class="chart-row" th:each="e : ${caParJour}">
+                <span th:text="${e.key}">date</span>
+                <div class="chart-track"><div class="chart-fill" th:attr="data-bar-value=${e.value}"></div></div>
+                <span th:text="${e.value}">0</span>
+            </div>
+        </div>
+    </article>
+</section>
+</body>
+</html>
