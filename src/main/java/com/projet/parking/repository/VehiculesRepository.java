@@ -10,8 +10,11 @@ import java.util.Optional;
 
 public interface VehiculesRepository extends JpaRepository<Vehicules, Long> {
 
-    boolean existsByImmatriculation(String immatriculation);
-    Optional<Vehicules> findByImmatriculation(String immatriculation);
+    @Query("select count(v) > 0 from Vehicules v where v.immatriculation = :immat")
+    boolean existeParImmatriculation(@Param("immat") String immatriculation);
+
+    @Query("select v from Vehicules v where v.immatriculation = :immat")
+    Optional<Vehicules> trouverParImmatriculation(@Param("immat") String immatriculation);
 
     @Query("select count(v) > 0 from Vehicules v where v.immatriculation = :immat and v.vehicule_id <> :id")
     boolean existsByImmatriculationAndIdNot(@Param("immat") String immatriculation, @Param("id") Long id);

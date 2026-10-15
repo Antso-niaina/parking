@@ -52,19 +52,19 @@ public class PlacesService {
     private final PlacesRepository placesRepository;
     private final ReservationRepository reservationRepository;
     private final EntreeSortiesRepository entreeSortiesRepository;
-    private final ZonesRepository zonesRepository;                          // NOUVEAU
+    private final ZonesRepository zonesRepository;
 
     public PlacesService(PlacesRepository placesRepository,
                          ReservationRepository reservationRepository,
                          EntreeSortiesRepository entreeSortiesRepository,
-                         ZonesRepository zonesRepository) {                 // NOUVEAU
+                         ZonesRepository zonesRepository) {
         this.placesRepository = placesRepository;
         this.reservationRepository = reservationRepository;
         this.entreeSortiesRepository = entreeSortiesRepository;
-        this.zonesRepository = zonesRepository;                             // NOUVEAU
+        this.zonesRepository = zonesRepository;
     }
 
-    // MODIFIÉ : nouveau paramètre zoneId, obligatoire, avec contrôle de la capacité de la zone
+
     @Transactional
     public Places creerPlace(String numero, int niveau, TypePlace type, Long zoneId) {
         if (numero == null || numero.isBlank()) {
@@ -77,7 +77,7 @@ public class PlacesService {
             throw new OperationNonAutoriseeException("La zone est obligatoire");
         }
         String numeroNormalise = numero.trim().toUpperCase();
-        if (placesRepository.existsByNumero(numeroNormalise)) {
+        if (placesRepository.existeParNumero(numeroNormalise)) {
             throw new OperationNonAutoriseeException("Une place avec ce numéro existe déjà");
         }
 
@@ -93,13 +93,13 @@ public class PlacesService {
         return placesRepository.save(place);
     }
 
-    // NOUVEAU : rattache une place existante à une zone (ou la déplace vers une autre)
+
     @Transactional
     public Places affecterZone(Long placeId, Long zoneId) {
         Places place = trouverEntite(placeId);
         Zones zone = verrouillerZone(zoneId);
         if (place.getZones() != null && place.getZones().getZone_id().equals(zoneId)) {
-            return place;   // déjà dans cette zone
+            return place;
         }
         verifierCapaciteZone(zone);
         place.setZones(zone);
@@ -180,13 +180,13 @@ public class PlacesService {
         return resultat;
     }
 
-    // NOUVEAU : verrou sur la zone, pour que deux administrateurs ne dépassent pas la capacité en même temps
+
     private Zones verrouillerZone(Long zoneId) {
         return zonesRepository.findByIdForUpdate(zoneId)
                 .orElseThrow(() -> new ResourceNotFoundException("Zone", "avec id inexistant : " + zoneId));
     }
 
-    // NOUVEAU : toutes les places comptent, même hors service (ce sont des emplacements physiques)
+
     private void verifierCapaciteZone(Zones zone) {
         long existantes = placesRepository.compterParZone(zone.getZone_id());
         if (existantes >= zone.getCapaciteTotal()) {
@@ -213,8 +213,19 @@ public class PlacesService {
         return placesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Place", "avec id inexistant : " + id));
     }
-    @Transactional(readOnly = true)
+    @Transactional
     public List<PlacesDTO> listerPlaces() {
-        return placesRepository.findAll(Sort.by("numero")).stream().map(PlacesMapper::toDto).toList();
+        LocalDateTime maintenant = LocalDateTime.now();
+        List<Places> places = placesRepository.findAll(Sort.by("numero"));
+        for (Places place : places) {
+            boolean reservee = reservationRepository.existsReservationEnCoursOuAVenir(
+                    place.getPlace_id(), RESERVATIONS_ACTIVES, maintenant);
+            if (reservee && place.getStatut() == LIBRE) {
+                place.setStatut(RESERVEE);
+            } else if (!reservee && place.getStatut() == RESERVEE) {
+                place.setStatut(LIBRE);
+            }
+        }
+        return places.stream().map(PlacesMapper::toDto).toList();
     }
 }

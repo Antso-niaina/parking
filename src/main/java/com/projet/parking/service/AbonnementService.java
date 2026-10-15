@@ -24,7 +24,7 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;   // NOUVEAU
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,11 +34,11 @@ import java.util.Set;
 @Service
 public class AbonnementService {
 
-    /** Statuts qui occupent une place et empêchent un nouvel abonnement sur la même période. */
+
     private static final List<StatutAbonnement> STATUTS_BLOQUANTS =
             List.of(StatutAbonnement.EN_ATTENTE, StatutAbonnement.ACTIF,
                     StatutAbonnement.SUSPENDU, StatutAbonnement.RENOUVELE);
-    /** Statuts qui donnent accès au parking (RENOUVELE = déjà renouvelé mais encore en cours). */
+
     private static final List<StatutAbonnement> STATUTS_EN_COURS =
             List.of(StatutAbonnement.ACTIF, StatutAbonnement.RENOUVELE);
     private static final List<StatutAbonnement> STATUTS_EXPIRABLES =
@@ -49,7 +49,7 @@ public class AbonnementService {
     private static final Duration TOLERANCE_DEBUT = Duration.ofMinutes(5);
     private static final Duration DELAI_PAIEMENT = Duration.ofHours(48);
     private static final Duration PREAVIS_ALERTE = Duration.ofDays(7);
-    private static final DateTimeFormatter FORMAT_DATE =                                  // NOUVEAU
+    private static final DateTimeFormatter FORMAT_DATE =
             DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm");
 
     private final AbonnementsRepository abonnementsRepository;
@@ -57,23 +57,23 @@ public class AbonnementService {
     private final VehiculesRepository vehiculesRepository;
     private final PlacesRepository placesRepository;
     private final ClientService clientService;
-    private final AlerteService alerteService;                                            // NOUVEAU
+    private final AlerteService alerteService;
 
     public AbonnementService(AbonnementsRepository abonnementsRepository,
                              ClientsRepository clientsRepository,
                              VehiculesRepository vehiculesRepository,
                              PlacesRepository placesRepository,
                              ClientService clientService,
-                             AlerteService alerteService) {                               // NOUVEAU
+                             AlerteService alerteService) {
         this.abonnementsRepository = abonnementsRepository;
         this.clientsRepository = clientsRepository;
         this.vehiculesRepository = vehiculesRepository;
         this.placesRepository = placesRepository;
         this.clientService = clientService;
-        this.alerteService = alerteService;                                               // NOUVEAU
+        this.alerteService = alerteService;
     }
 
-    // ------------------------------------------------------------------ souscrire
+
 
     @Transactional
     public AbonnementsDTO souscrire(Long userId, List<Long> vehiculeIds, FormuleAbonnement formule,
@@ -101,7 +101,7 @@ public class AbonnementService {
         return AbonnementsMapper.toDto(abonnementsRepository.save(a));
     }
 
-    /** Enregistre le paiement : l'abonnement passe EN_ATTENTE -> ACTIF. */
+
     @Transactional
     public AbonnementsDTO confirmerPaiement(Long id, BigDecimal montant) {
         Abonnements a = trouverEntite(id);
@@ -117,9 +117,9 @@ public class AbonnementService {
         return AbonnementsMapper.toDto(a);
     }
 
-    // ------------------------------------------------------------------ renouveler
 
-    /** Renouvellement manuel. Crée la période suivante ; l'ancienne passe RENOUVELE. */
+
+
     @Transactional
     public AbonnementsDTO renouveler(Long id) {
         Abonnements ancien = trouverEntite(id);
@@ -131,7 +131,7 @@ public class AbonnementService {
     }
 
     private Abonnements creerRenouvellement(Abonnements ancien, LocalDateTime maintenant) {
-        // continuité : la nouvelle période démarre à la fin de l'ancienne (ou maintenant si déjà dépassée)
+
         LocalDateTime debut = ancien.getDate_fin().isAfter(maintenant) ? ancien.getDate_fin() : maintenant;
         LocalDateTime fin = calculerFin(debut, ancien.getType_abonnements());
         List<Vehicules> vehicules = new ArrayList<>(ancien.getVehicules());
@@ -145,7 +145,7 @@ public class AbonnementService {
         return abonnementsRepository.save(nouveau);
     }
 
-    // ------------------------------------------------------------------ suspendre / résilier
+
 
     @Transactional
     public AbonnementsDTO suspendre(Long id) {
@@ -157,7 +157,7 @@ public class AbonnementService {
         return AbonnementsMapper.toDto(a);
     }
 
-    /** @return le montant remboursé (prorata du temps non consommé) */
+
     @Transactional
     public BigDecimal resilier(Long id) {
         Abonnements a = trouverEntite(id);
@@ -188,7 +188,7 @@ public class AbonnementService {
                 .divide(BigDecimal.valueOf(total), 2, RoundingMode.HALF_UP);
     }
 
-    // ------------------------------------------------------------------ contrôle d'accès
+
 
     @Transactional(readOnly = true)
     public boolean estAbonnementValide(String plaque, LocalDateTime maintenant) {
@@ -209,12 +209,12 @@ public class AbonnementService {
         return switch (f) {
             case COMPLET -> true;
             case JOUR -> jour;
-            case NUIT -> !jour;   // 20:00 -> 06:00, à cheval sur minuit
+            case NUIT -> !jour;
             case WEEKEND -> t.getDayOfWeek() == DayOfWeek.SATURDAY || t.getDayOfWeek() == DayOfWeek.SUNDAY;
         };
     }
 
-    // ------------------------------------------------------------------ tâches planifiées
+
 
     @Scheduled(cron = "0 */5 * * * *")
     @Transactional
@@ -222,27 +222,27 @@ public class AbonnementService {
         expirerAbonnements(LocalDateTime.now());
     }
 
-    /** Surcharge avec l'heure en paramètre : permet de la tester sans dépendre de l'horloge. */
+
     @Transactional
     public void expirerAbonnements(LocalDateTime maintenant) {
         for (Abonnements a : abonnementsRepository.findAExpirer(STATUTS_EXPIRABLES, maintenant)) {
             if (a.getStatutAbonnement() == StatutAbonnement.ACTIF && a.isRenouvellementAuto()) {
                 try {
-                    creerRenouvellement(a, maintenant);   // la nouvelle période attend son paiement
+                    creerRenouvellement(a, maintenant);
                 } catch (OperationNonAutoriseeException e) {
                     log.warn("Renouvellement auto impossible pour l'abonnement {} : {}", a.getAbonnement_id(), e.getMessage());
                 }
             }
             a.setStatutAbonnement(StatutAbonnement.EXPIRE);
         }
-        // libère le quota des abonnements jamais payés
+
         for (Abonnements a : abonnementsRepository.findNonPayesAvant(StatutAbonnement.EN_ATTENTE,
                 maintenant.minus(DELAI_PAIEMENT))) {
             a.setStatutAbonnement(StatutAbonnement.ANNULE);
         }
     }
 
-    // MODIFIÉ : l'ancien log + TODO est remplacé par une vraie alerte + notification au client
+
     @Scheduled(cron = "0 0 8 * * *")
     @Transactional
     public void envoyerAlertesExpiration() {
@@ -253,11 +253,11 @@ public class AbonnementService {
                     "Votre abonnement n° " + a.getAbonnement_id() + " expire le "
                             + a.getDate_fin().format(FORMAT_DATE) + ".",
                     "EXPIRATION_ABONNEMENT:" + a.getAbonnement_id());
-            a.setAlerteEnvoyee(true);   // idempotence : une seule alerte par abonnement
+            a.setAlerteEnvoyee(true);
         }
     }
 
-    // ------------------------------------------------------------------ règles communes
+
 
     private void verifierAbsenceChevauchement(List<Vehicules> vehicules, LocalDateTime debut, LocalDateTime fin) {
         for (Vehicules v : vehicules) {
@@ -269,7 +269,7 @@ public class AbonnementService {
     }
 
     private void verifierQuota(int nbVehicules, LocalDateTime debut, LocalDateTime fin) {
-        // le verrou sérialise les souscriptions concurrentes jusqu'à la fin de la transaction
+
         List<Places> places = placesRepository.findByTypeForUpdate(TypePlace.ABONNE);
         long capacite = places.stream().filter(p -> p.getStatut() != StatutPlace.HORS_SERVICE).count();
         long dejaPris = abonnementsRepository.compterVehiculesAbonnes(STATUTS_BLOQUANTS, debut, fin);

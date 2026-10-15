@@ -29,17 +29,17 @@ public class TarifController {
         this.tarifsService = tarifsService;
     }
 
-    @GetMapping("/actuel")   // tout utilisateur connecté (SecurityConfig)
+    @GetMapping("/actuel")
     public TarifsDTO actuel() {
         return TarifsMapper.toDto(tarifsService.getTarifActuel());
     }
 
-    @GetMapping("/historique")   // ADMIN
+    @GetMapping("/historique")
     public List<TarifsDTO> historique() {
         return tarifsService.getHistoriqueTarifs().stream().map(TarifsMapper::toDto).toList();
     }
 
-    @PostMapping   // ADMIN : nouvelle grille, les anciennes sont conservées
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TarifsDTO definir(@AuthenticationPrincipal Clients moi, @Valid @RequestBody TarifsDTO dto) {
         return TarifsMapper.toDto(tarifsService.definirTarif(moi.getClient_id(), TarifsMapper.toEntity(dto)));

@@ -25,7 +25,7 @@ public class ReservationController {
     public record ModifierReservationRequest(LocalDateTime debut, LocalDateTime fin, Long placeId) {}
 
     private final ReservationService reservationService;
-    private final PaiementService paiementService;                       // NOUVEAU
+    private final PaiementService paiementService;
 
     public ReservationController(ReservationService reservationService, PaiementService paiementService) {
         this.reservationService = reservationService;
@@ -40,13 +40,13 @@ public class ReservationController {
                 req.debut(), req.fin());
     }
 
-    // NOUVEAU
+
     @GetMapping("/mes")
     public List<ReservationsDTO> mesReservations(@AuthenticationPrincipal Clients moi) {
         return reservationService.getReservationsParUtilisateur(moi.getClient_id());
     }
 
-    // NOUVEAU
+
     @GetMapping("/utilisateur/{userId}")
     @PreAuthorize("hasRole('ADMIN') or @securite.estMoi(#userId, authentication)")
     public List<ReservationsDTO> parUtilisateur(@PathVariable Long userId) {
@@ -59,7 +59,7 @@ public class ReservationController {
         return reservationService.modifierReservation(id, req.debut(), req.fin(), req.placeId());
     }
 
-    // MODIFIÉ : annule ET enregistre le remboursement
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @securite.proprietaireReservation(#id, authentication)")
     public RemboursementDTO annuler(@PathVariable Long id) {

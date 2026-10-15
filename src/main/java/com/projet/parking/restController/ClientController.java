@@ -40,17 +40,17 @@ public class ClientController {
         return clientService.modifier(id, dto);
     }
 
-    @PostMapping("/{id}/suspendre")   // ADMIN (SecurityConfig)
+    @PostMapping("/{id}/suspendre")
     public ClientsDTO suspendre(@PathVariable Long id) {
         return clientService.suspendreUtilisateur(id);
     }
 
-    @PostMapping("/{id}/reactiver")   // ADMIN (SecurityConfig)
+    @PostMapping("/{id}/reactiver")
     public ClientsDTO reactiver(@PathVariable Long id) {
         return clientService.reactiverUtilisateur(id);
     }
 
-    @DeleteMapping("/{id}")           // ADMIN (SecurityConfig)
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void supprimer(@PathVariable Long id) {
         clientService.supprimerUtilisateur(id);

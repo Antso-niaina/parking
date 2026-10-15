@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/acces")   // BORNE ou ADMIN (SecurityConfig)
+@RequestMapping("/api/acces")
 public class AccesController {
 
     public record EntreeRequest(@NotBlank String plaque, TypeVehicule typeVehicule) {}

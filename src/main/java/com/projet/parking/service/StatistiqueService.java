@@ -1,9 +1,9 @@
 package com.projet.parking.service;
 
 import com.projet.parking.dto.TableauDeBordDTO;
-import com.projet.parking.dto.ZoneStatDTO;                                    // NOUVEAU
+import com.projet.parking.dto.ZoneStatDTO;
 import com.projet.parking.entity.Paiement;
-import com.projet.parking.entity.Zones;                                       // NOUVEAU
+import com.projet.parking.entity.Zones;
 import com.projet.parking.enumeration.StatutPaiement;
 import com.projet.parking.enumeration.StatutPlace;
 import com.projet.parking.enumeration.StatutSortie;
@@ -13,7 +13,7 @@ import com.projet.parking.exception.OperationNonAutoriseeException;
 import com.projet.parking.repository.EntreeSortiesRepository;
 import com.projet.parking.repository.PaiementRepository;
 import com.projet.parking.repository.PlacesRepository;
-import com.projet.parking.repository.ZonesRepository;                         // NOUVEAU
+import com.projet.parking.repository.ZonesRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,43 +21,43 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;                                                   // NOUVEAU
+import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;                                                     // NOUVEAU
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-/** Toutes les périodes sont [debut, fin[ : la fin est exclue. */
+
 @Service
 @Transactional(readOnly = true)
 public class StatistiqueService {
 
-    // un paiement remboursé compte pour (montant - remboursé)
+
     private static final List<StatutPaiement> ENCAISSES = List.of(StatutPaiement.PAYEE, StatutPaiement.REMBOURSEE);
 
     private final PlacesService placesService;
     private final PlacesRepository placesRepository;
     private final PaiementRepository paiementRepository;
     private final EntreeSortiesRepository entreeSortiesRepository;
-    private final ZonesRepository zonesRepository;                            // NOUVEAU
+    private final ZonesRepository zonesRepository;
 
     public StatistiqueService(PlacesService placesService,
                               PlacesRepository placesRepository,
                               PaiementRepository paiementRepository,
                               EntreeSortiesRepository entreeSortiesRepository,
-                              ZonesRepository zonesRepository) {              // NOUVEAU
+                              ZonesRepository zonesRepository) {
         this.placesService = placesService;
         this.placesRepository = placesRepository;
         this.paiementRepository = paiementRepository;
         this.entreeSortiesRepository = entreeSortiesRepository;
-        this.zonesRepository = zonesRepository;                               // NOUVEAU
+        this.zonesRepository = zonesRepository;
     }
 
-    // ===================================================================== OCCUPATION (temps réel)
 
-    /** Pourcentage de places exploitables occupées en ce moment. */
+
+
     public double getTauxOccupation() {
         return placesService.getTauxOccupation();
     }
@@ -77,11 +77,11 @@ public class StatistiqueService {
         return resultat;
     }
 
-    /**
-     * NOUVEAU : une ligne par zone.
-     * tauxOccupation = places occupées / places exploitables (hors service exclues) ;
-     * tauxRemplissage = places existantes / capacité prévue de la zone.
-     */
+
+
+
+
+
     public List<ZoneStatDTO> getTauxOccupationParZone() {
         Map<Long, Map<StatutPlace, Long>> parZone = new HashMap<>();
         for (Object[] ligne : placesRepository.compterParZoneEtStatut()) {
@@ -109,9 +109,9 @@ public class StatistiqueService {
         return entreeSortiesRepository.countByStatut(StatutSortie.EN_COURS);
     }
 
-    // ===================================================================== CHIFFRE D'AFFAIRES
 
-    /** Total encaissé sur la période, remboursements déduits. */
+
+
     public BigDecimal getChiffreAffaires(LocalDateTime debut, LocalDateTime fin) {
         verifierPeriode(debut, fin);
         return paiementRepository.findEncaissesEntre(ENCAISSES, debut, fin).stream()
@@ -119,7 +119,7 @@ public class StatistiqueService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /** Répartition entre stationnement, réservations et abonnements. */
+
     public Map<TypePaiement, BigDecimal> getChiffreAffairesParType(LocalDateTime debut, LocalDateTime fin) {
         verifierPeriode(debut, fin);
         Map<TypePaiement, BigDecimal> resultat = new EnumMap<>(TypePaiement.class);
@@ -132,7 +132,7 @@ public class StatistiqueService {
         return resultat;
     }
 
-    /** Un total par jour (les jours sans encaissement n'apparaissent pas). */
+
     public Map<LocalDate, BigDecimal> getChiffreAffairesParJour(LocalDateTime debut, LocalDateTime fin) {
         verifierPeriode(debut, fin);
         Map<LocalDate, BigDecimal> resultat = new TreeMap<>();
@@ -142,9 +142,9 @@ public class StatistiqueService {
         return resultat;
     }
 
-    // ===================================================================== FRÉQUENTATION
 
-    /** Nombre d'entrées dans la période. */
+
+
     public long getFrequentation(LocalDateTime debut, LocalDateTime fin) {
         verifierPeriode(debut, fin);
         return entreeSortiesRepository.findDatesEntreeEntre(debut, fin).size();
@@ -156,7 +156,7 @@ public class StatistiqueService {
                 .collect(Collectors.groupingBy(LocalDateTime::toLocalDate, TreeMap::new, Collectors.counting()));
     }
 
-    /** Entrées par heure de la journée (0 à 23) : repère les heures de pointe. */
+
     public Map<Integer, Long> getFrequentationParHeure(LocalDateTime debut, LocalDateTime fin) {
         verifierPeriode(debut, fin);
         Map<Integer, Long> resultat = new TreeMap<>();
@@ -169,9 +169,9 @@ public class StatistiqueService {
         return resultat;
     }
 
-    // ===================================================================== DURÉE MOYENNE
 
-    /** Moyenne des sessions terminées dans la période (sortie comprise entre debut et fin). */
+
+
     public Duration getDureeMoyenneStationnement(LocalDateTime debut, LocalDateTime fin) {
         verifierPeriode(debut, fin);
         List<Object[]> sessions = entreeSortiesRepository.findDureesTerminees(StatutSortie.TERMINE, debut, fin);
@@ -185,7 +185,7 @@ public class StatistiqueService {
         return Duration.ofSeconds(totalSecondes / sessions.size());
     }
 
-    // ===================================================================== TABLEAU DE BORD
+
 
     public TableauDeBordDTO getTableauDeBord(LocalDateTime debut, LocalDateTime fin) {
         verifierPeriode(debut, fin);
@@ -199,7 +199,7 @@ public class StatistiqueService {
                 getDureeMoyenneStationnement(debut, fin).toMinutes());
     }
 
-    // ===================================================================== OUTILS
+
 
     private BigDecimal net(Paiement p) {
         BigDecimal rembourse = p.getMontantRembourse() != null ? p.getMontantRembourse() : BigDecimal.ZERO;

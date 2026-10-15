@@ -23,11 +23,11 @@ public class Alerte {
     private LocalDateTime dateCreation;
     private boolean lue;
 
-    // clé d'idempotence, ex. "RAPPEL_RESERVATION:12" : une même alerte n'est créée qu'une fois
+
     @Column(unique = true, length = 100)
     private String cle;
 
-    // destinataire ; null = destinée aux administrateurs
+
     @ToString.Exclude @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clients_id")

@@ -16,7 +16,8 @@ import java.util.Optional;
 
 public interface PlacesRepository extends JpaRepository<Places, Long> {
 
-    boolean existsByNumero(String numero);
+    @Query("select count(p) > 0 from Places p where p.numero = :numero")
+    boolean existeParNumero(@Param("numero") String numero);
 
     @Query("select count(p) from Places p where p.statut = :statut")
     long compterParStatut(@Param("statut") StatutPlace statut);
@@ -45,10 +46,10 @@ public interface PlacesRepository extends JpaRepository<Places, Long> {
                                     @Param("debut") LocalDateTime debut,
                                     @Param("fin") LocalDateTime fin);
 
-    /**
-     * Charge les places d'un type en les verrouillant (SELECT ... FOR UPDATE) :
-     * sérialise les souscriptions concurrentes pour que le contrôle du quota soit fiable.
-     */
+
+
+
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Places p where p.type_place = :type")
     List<Places> findByTypeForUpdate(@Param("type") TypePlace type);
@@ -57,16 +58,17 @@ public interface PlacesRepository extends JpaRepository<Places, Long> {
     Optional<Places> findByIdForUpdate(@Param("id") Long id);
     @Query("select count(p) from Places p where p.type_place = :type and p.statut <> :statut")
     long compterParTypeSaufStatut(@Param("type") TypePlace type, @Param("statut") StatutPlace statut);
-    // PlacesRepository : à ajouter
+
     @Query("select count(p) from Places p where p.zones.zone_id = :zoneId")
     long compterParZone(@Param("zoneId") Long zoneId);
 
     @Query("select p from Places p where p.zones.zone_id = :zoneId order by p.numero")
     List<Places> findByZoneId(@Param("zoneId") Long zoneId);
 
-    List<Places> findByZonesIsNull();
+    @Query("select p from Places p where p.zones is null")
+    List<Places> trouverSansZone();
 
-    // (zone, statut, nombre) : sert aux statistiques par zone
+
     @Query("""
     select p.zones.zone_id, p.statut, count(p) from Places p
     where p.zones is not null

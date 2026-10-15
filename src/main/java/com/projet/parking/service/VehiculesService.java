@@ -53,7 +53,7 @@ public class VehiculesService {
             throw new OperationNonAutoriseeException("Le type de véhicule est obligatoire");
         }
         String immat = normaliser(dto.getImmatriculation());
-        if (vehiculesRepository.existsByImmatriculation(immat)) {
+        if (vehiculesRepository.existeParImmatriculation(immat)) {
             throw new OperationNonAutoriseeException("Un véhicule avec cette immatriculation existe déjà");
         }
 

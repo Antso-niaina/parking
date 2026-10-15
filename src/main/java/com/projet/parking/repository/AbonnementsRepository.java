@@ -21,7 +21,7 @@ public interface AbonnementsRepository extends JpaRepository<Abonnements,Long> {
                                    @Param("statuts") List<StatutAbonnement> statuts,
                                    @Param("maintenant") LocalDateTime maintenant);
 
-    /** Chevauchement strict : une période qui commence exactement à la fin d'une autre ne chevauche pas. */
+
     @Query("""
     select count(a) > 0 from Abonnements a join a.vehicules v
     where v.vehicule_id = :vehiculeId
@@ -34,7 +34,7 @@ public interface AbonnementsRepository extends JpaRepository<Abonnements,Long> {
                                 @Param("debut") LocalDateTime debut,
                                 @Param("fin") LocalDateTime fin);
 
-    /** Nombre de véhicules couverts par des abonnements qui touchent la période. */
+
     @Query("""
     select count(v) from Abonnements a join a.vehicules v
     where a.statutAbonnement in :statuts
@@ -66,7 +66,7 @@ public interface AbonnementsRepository extends JpaRepository<Abonnements,Long> {
     List<Abonnements> findAExpirer(@Param("statuts") List<StatutAbonnement> statuts,
                                    @Param("maintenant") LocalDateTime maintenant);
 
-    /** Abonnements jamais payés dont le délai de paiement est dépassé. */
+
     @Query("""
     select a from Abonnements a
     where a.statutAbonnement = :statut

@@ -1,20 +1,12 @@
 package com.projet.parking.controller;
 
-import com.projet.parking.config.SecuriteService;
 import com.projet.parking.dto.*;
-import com.projet.parking.entity.*;
 import com.projet.parking.enumeration.*;
 import com.projet.parking.exception.*;
-import com.projet.parking.mapper.*;
 import com.projet.parking.service.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -22,9 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Controller
 @RequestMapping("/borne")
@@ -33,6 +22,8 @@ public class BornePageController {
     @Data public static class EntreeForm {
         @NotBlank private String plaque;
         private TypeVehicule typeVehicule;
+        private Long placeId;
+        private boolean utiliserReservation;
     }
 
     @Data public static class SortieForm {
@@ -60,6 +51,7 @@ public class BornePageController {
         model.addAttribute("sortie", new SortieForm());
         model.addAttribute("anomalie", new AnomalieForm());
         model.addAttribute("typesVehicule", TypeVehicule.values());
+        model.addAttribute("places", accesService.getPlacesPourEntree());
         model.addAttribute("typesAnomalie", TypeAnomalie.values());
         return "borne/accueil";
     }
@@ -70,15 +62,14 @@ public class BornePageController {
         if (result.hasErrors()) {
             return invalide(result, ra);
         }
-        EntreeSortiesDTO session = form.getTypeVehicule() != null
-                ? accesService.enregistrerEntree(form.getPlaque(), form.getTypeVehicule())
-                : accesService.enregistrerEntree(form.getPlaque());
+        EntreeSortiesDTO session = accesService.enregistrerEntree(
+                form.getPlaque(), form.getTypeVehicule(), form.getPlaceId(), true);
         ra.addFlashAttribute("message", "Entrée enregistrée pour " + session.getImmatriculation()
                 + " (session n° " + session.getEntreeSortie_id() + ")");
         return "redirect:/borne";
     }
 
-    /** Étape 1 de la sortie : affiche le montant à encaisser. */
+
     @PostMapping("/sortie/montant")
     public String montantSortie(@Valid @ModelAttribute("sortie") SortieForm form, BindingResult result,
                                 Model model, RedirectAttributes ra) {
@@ -89,7 +80,12 @@ public class BornePageController {
         return "borne/sortie";
     }
 
-    /** Étape 2 : paiement encaissé, la barrière s'ouvre. */
+    @GetMapping({"/sortie/montant", "/sortie"})
+    public String accesDirectSortie() {
+        return "redirect:/borne";
+    }
+
+
     @PostMapping("/sortie")
     public String sortie(@Valid @ModelAttribute("sortie") SortieForm form, BindingResult result,
                          RedirectAttributes ra) {

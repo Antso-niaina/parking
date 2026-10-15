@@ -25,17 +25,17 @@ public class Abonnements {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long abonnement_id;
     @Enumerated(EnumType.STRING)
-    private TypeAbonnements type_abonnements;   // durée : JOURNALIER, HEBDOMADAIRE, MENSUEL, ANNUEL
+    private TypeAbonnements type_abonnements;
     @Column(nullable = false)
     private LocalDateTime date_debut;
     @Column(nullable = false)
-    private LocalDateTime date_fin;             // exclusive : valide tant que maintenant < date_fin
+    private LocalDateTime date_fin;
     @Enumerated(EnumType.STRING)
     private StatutAbonnement statutAbonnement;
 
-    // --- nouveaux champs ---
+
     @Enumerated(EnumType.STRING)
-    private FormuleAbonnement formule;          // plage horaire autorisée (null = COMPLET)
+    private FormuleAbonnement formule;
     @Enumerated(EnumType.STRING)
     private StatutPaiement statutPaiement;
     private BigDecimal montantPaye;

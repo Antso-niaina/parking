@@ -35,7 +35,7 @@ public class TarifsDTO {
     private double reductionAbonnePourcentage;
     private boolean actif;
 
-    // --- nouveaux champs de la grille ---
+
     @Min(value = 0, message = "La franchise ne peut pas etre negative")
     private int franchiseMinutes;
     @DecimalMin(value = "0.0") @DecimalMax(value = "100.0")

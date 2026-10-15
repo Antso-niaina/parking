@@ -4,8 +4,8 @@
 <body>
 <section>
     <article class="card">
-        <h2>Paiements à traiter</h2>
-        <p class="muted">Cette page liste uniquement les paiements au statut EN_ATTENTE.</p>
+        <h2>Paiements et validation des réservations</h2>
+        <p class="muted">Pour confirmer une réservation, repérez son paiement de type RESERVATION puis cliquez sur « Valider ». La réservation correspondante passe alors automatiquement à CONFIRMEE. Cette page liste uniquement les paiements EN_ATTENTE.</p>
         <div th:if="${paiements == null or #lists.isEmpty(paiements)}" class="empty">
             <th:block th:replace="~{fragments/icons :: i('wallet')}"/>
             <p>Aucun paiement en attente.</p>

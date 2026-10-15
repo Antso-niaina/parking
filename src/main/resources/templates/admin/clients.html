@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: page('Gestion des clients', 'Administration', 'clients-admin', ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org" lang="fr">
+<body>
+<section>
+    <article class="card">
+        <h2>Comptes clients</h2>
+        <p class="muted">La suppression est logique. Les comptes avec une réservation, un abonnement ou une session active ne peuvent pas être supprimés.</p>
+        <div th:if="${clients == null or #lists.isEmpty(clients)}" class="empty">
+            <th:block th:replace="~{fragments/icons :: i('users')}"/>
+            <p>Aucun compte client.</p>
+        </div>
+        <div class="table-wrap" th:unless="${clients == null or #lists.isEmpty(clients)}">
+            <table class="data">
+                <thead>
+                <tr><th>Client</th><th>E-mail</th><th>Téléphone</th><th>Type</th><th>Statut</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="client : ${clients}">
+                    <td th:text="${client.prenom} + ' ' + ${client.nom}">Nom</td>
+                    <td th:text="${client.email}">email</td>
+                    <td th:text="${client.telephone != null ? client.telephone : '—'}">—</td>
+                    <td><span class="badge" th:text="${client.type_client}">STANDAR</span></td>
+                    <td><span class="badge" th:text="${client.statut}">ACTIF</span></td>
+                    <td class="row-actions">
+                        <form th:if="${client.statut.name() == 'ACTIF'}"
+                              th:action="@{/admin/clients/{id}/suspendre(id=${client.client_id})}" method="post" data-once>
+                            <button class="btn btn-ghost btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('ban')}"/> Suspendre
+                            </button>
+                        </form>
+                        <form th:if="${client.statut.name() == 'SUSPENDU'}"
+                              th:action="@{/admin/clients/{id}/reactiver(id=${client.client_id})}" method="post" data-once>
+                            <button class="btn btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('check')}"/> Réactiver
+                            </button>
+                        </form>
+                        <form th:if="${client.statut.name() != 'SUPPRIME'}"
+                              th:action="@{/admin/clients/{id}/supprimer(id=${client.client_id})}" method="post"
+                              data-once data-confirm="Supprimer logiquement ce compte ?">
+                            <button class="btn btn-ghost btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('trash-2')}"/> Supprimer
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+</body>
+</html>

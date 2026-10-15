@@ -1,6 +1,5 @@
 package com.projet.parking.controller;
 
-import com.projet.parking.config.SecuriteService;
 import com.projet.parking.dto.*;
 import com.projet.parking.entity.*;
 import com.projet.parking.enumeration.*;
@@ -11,9 +10,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,7 +20,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
@@ -58,9 +53,9 @@ public class AdminPageController {
         this.alerteService = alerteService;
     }
 
-    // ----------------------------------------------------------------- tableau de bord
 
-    /** Période par défaut : les 30 derniers jours, jour de fin inclus. */
+
+
     @GetMapping
     public String tableauDeBord(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate debut,
                                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin,
@@ -80,7 +75,7 @@ public class AdminPageController {
         return "admin/tableau-de-bord";
     }
 
-    // ----------------------------------------------------------------- places
+
 
     @GetMapping("/places")
     public String places(Model model) {
@@ -124,7 +119,7 @@ public class AdminPageController {
         return "redirect:/admin/places";
     }
 
-    // ----------------------------------------------------------------- zones
+
 
     @GetMapping("/zones")
     public String zones(Model model) {
@@ -162,7 +157,7 @@ public class AdminPageController {
         return "redirect:/admin/zones";
     }
 
-    // ----------------------------------------------------------------- tarifs
+
 
     @GetMapping("/tarifs")
     public String tarifs(Model model) {
@@ -170,7 +165,7 @@ public class AdminPageController {
         try {
             actuel = TarifsMapper.toDto(tarifsService.getTarifActuel());
         } catch (ResourceNotFoundException e) {
-            actuel = new TarifsDTO();   // aucune grille pour l'instant
+            actuel = new TarifsDTO();
         }
         model.addAttribute("tarif", actuel);
         model.addAttribute("historique",
@@ -190,7 +185,7 @@ public class AdminPageController {
         return "redirect:/admin/tarifs";
     }
 
-    // ----------------------------------------------------------------- justificatifs PMR
+
 
     @GetMapping("/justificatifs")
     public String justificatifs(Model model) {
@@ -224,7 +219,7 @@ public class AdminPageController {
         return "redirect:/admin/alertes";
     }
 
-    // ----------------------------------------------------------------- paiements en attente
+
 
     @GetMapping("/paiements")
     public String paiements(Model model) {
@@ -254,7 +249,7 @@ public class AdminPageController {
         return "redirect:/admin/paiements";
     }
 
-    // ----------------------------------------------------------------- alertes
+
 
     @GetMapping("/alertes")
     public String alertes(Model model) {

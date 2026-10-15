@@ -44,9 +44,9 @@ public class AlerteService {
         this.factureRepository = factureRepository;
     }
 
-    // ===================================================================== CRÉATION
 
-    /** Alerte + notification pour un utilisateur. Vide si la clé existe déjà (alerte déjà envoyée). */
+
+
     @Transactional
     public Optional<Alerte> alerterUtilisateur(Clients client, TypeAlerte type, String message, String cle) {
         if (client == null) {
@@ -57,7 +57,7 @@ public class AlerteService {
         return alerte;
     }
 
-    /** Alerte + notification pour tous les administrateurs actifs. */
+
     @Transactional
     public Optional<Alerte> alerterAdministrateurs(TypeAlerte type, String message, String cle) {
         Optional<Alerte> alerte = creer(null, type, message, cle);
@@ -78,9 +78,9 @@ public class AlerteService {
         return Optional.of(alerteRepository.save(a));
     }
 
-    // ===================================================================== TÂCHES PLANIFIÉES
 
-    /** Rappel un peu avant le début d'une réservation confirmée (une seule fois par réservation). */
+
+
     @Scheduled(cron = "0 */5 * * * *")
     @Transactional
     public int envoyerRappelsReservation() {
@@ -98,7 +98,7 @@ public class AlerteService {
         return envoyes;
     }
 
-    /** Une alerte par facture impayée, pour le client et pour les administrateurs. */
+
     @Scheduled(cron = "0 0 9 * * *")
     @Transactional
     public int alerterImpayes() {
@@ -118,7 +118,7 @@ public class AlerteService {
         return envoyes;
     }
 
-    // ===================================================================== CONSULTATION
+
 
     @Transactional(readOnly = true)
     public List<AlerteDTO> getAlertesUtilisateur(Long userId) {

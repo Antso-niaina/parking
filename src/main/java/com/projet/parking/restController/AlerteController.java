@@ -34,7 +34,7 @@ public class AlerteController {
         return alerteService.getAlertesUtilisateur(moi.getClient_id());
     }
 
-    @GetMapping("/admin")   // ADMIN (SecurityConfig)
+    @GetMapping("/admin")
     public List<AlerteDTO> alertesAdmin() {
         return alerteService.getAlertesAdministrateurs();
     }

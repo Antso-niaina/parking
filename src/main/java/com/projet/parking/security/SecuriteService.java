@@ -1,4 +1,4 @@
-package com.projet.parking.config;
+package com.projet.parking.security;
 
 import com.projet.parking.entity.Clients;
 import com.projet.parking.enumeration.TypePaiement;
@@ -19,18 +19,18 @@ public class SecuriteService {
     private final AbonnementsRepository abonnementsRepository;
     private final VehiculesRepository vehiculesRepository;
     private final PaiementRepository paiementRepository;
-    private final AlerteRepository alerteRepository;                 // AJOUTÉ
+    private final AlerteRepository alerteRepository;
 
     public SecuriteService(ReservationRepository reservationRepository,
                            AbonnementsRepository abonnementsRepository,
                            VehiculesRepository vehiculesRepository,
                            PaiementRepository paiementRepository,
-                           AlerteRepository alerteRepository) {      // AJOUTÉ
+                           AlerteRepository alerteRepository) {
         this.reservationRepository = reservationRepository;
         this.abonnementsRepository = abonnementsRepository;
         this.vehiculesRepository = vehiculesRepository;
         this.paiementRepository = paiementRepository;
-        this.alerteRepository = alerteRepository;                    // AJOUTÉ
+        this.alerteRepository = alerteRepository;
     }
 
     public Long idConnecte(Authentication auth) {
@@ -66,14 +66,14 @@ public class SecuriteService {
                 .map(p -> p.getClients() != null && p.getClients().getClient_id().equals(moi)).orElse(false);
     }
 
-    /** Alerte destinée à ce client. Une alerte administrateur (sans client) n'appartient à personne. */
+
     public boolean proprietaireAlerte(Long id, Authentication auth) {
         Long moi = idConnecte(auth);
         return moi != null && alerteRepository.findById(id)
                 .map(a -> a.getClients() != null && a.getClients().getClient_id().equals(moi)).orElse(false);
     }
 
-    /** Un client ne crée un paiement que pour sa réservation ou son abonnement ; la borne et l'admin pour tout. */
+
     public boolean peutCreerPaiement(TypePaiement type, Long cibleId, Authentication auth) {
         if (aRole(auth, "ROLE_ADMIN") || aRole(auth, "ROLE_BORNE")) {
             return true;

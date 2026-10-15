@@ -41,7 +41,7 @@ public class FactureService {
     }
 
 
-    /** Factures non réglées d'un client, de la plus ancienne à la plus récente. */
+
     @Transactional(readOnly = true)
     public List<FactureDTO> getImpayes(Long userId) {
         clientsRepository.findById(userId)
@@ -50,7 +50,7 @@ public class FactureService {
                 .stream().map(FactureMapper::toDto).toList();
     }
 
-    /** Facture d'un paiement de stationnement ; elle existe une fois le véhicule sorti. */
+
     @Transactional(readOnly = true)
     public FactureDTO genererFacture(Long paiementId) {
         Paiement p = trouverPaiement(paiementId);
@@ -62,7 +62,7 @@ public class FactureService {
                 .orElseThrow(() -> new OperationNonAutoriseeException("La facture sera disponible à la sortie du véhicule"));
     }
 
-    /** Reçu pour tout paiement encaissé (session, réservation ou abonnement). */
+
     @Transactional(readOnly = true)
     public RecuDTO genererRecu(Long paiementId) {
         Paiement p = trouverPaiement(paiementId);

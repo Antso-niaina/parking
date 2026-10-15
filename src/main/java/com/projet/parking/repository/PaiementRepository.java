@@ -21,7 +21,7 @@ public interface PaiementRepository extends JpaRepository<Paiement, Long> {
     @Query("select count(p) > 0 from Paiement p where p.abonnements.abonnement_id = :id and p.statut in :statuts")
     boolean existsPourAbonnement(@Param("id") Long id, @Param("statuts") List<StatutPaiement> statuts);
 
-    // null s'il n'y a aucun paiement
+
     @Query("select sum(p.montant) from Paiement p where p.entreeSorties.entreeSortie_id = :id and p.statut = :statut")
     BigDecimal totalParSession(@Param("id") Long id, @Param("statut") StatutPaiement statut);
 

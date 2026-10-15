@@ -22,7 +22,7 @@ import java.util.List;
 @RequestMapping("/api/paiements")
 public class PaiementController {
 
-    public record CreerPaiementRequest(@NotNull @Positive BigDecimal montant,
+    public record CreerPaiementRequest(@Positive BigDecimal montant,
                                        @NotNull TypePaiement typePaiement, @NotNull Long cibleId) {}
 
     private final PaiementService paiementService;
@@ -40,30 +40,30 @@ public class PaiementController {
         return paiementService.creerPaiement(req.montant(), req.typePaiement(), req.cibleId());
     }
 
-    // NOUVEAU
+
     @GetMapping("/mes")
     public List<PaiementDTO> mesPaiements(@AuthenticationPrincipal Clients moi) {
         return paiementService.getPaiementsParUtilisateur(moi.getClient_id());
     }
 
-    // NOUVEAU
+
     @GetMapping("/utilisateur/{userId}")
     @PreAuthorize("hasRole('ADMIN') or @securite.estMoi(#userId, authentication)")
     public List<PaiementDTO> parUtilisateur(@PathVariable Long userId) {
         return paiementService.getPaiementsParUtilisateur(userId);
     }
 
-    @PostMapping("/{id}/valider")   // BORNE ou ADMIN (SecurityConfig)
+    @PostMapping("/{id}/valider")
     public PaiementDTO valider(@PathVariable Long id) {
         return paiementService.validerPaiement(id);
     }
 
-    @PostMapping("/{id}/echec")     // BORNE ou ADMIN (SecurityConfig)
+    @PostMapping("/{id}/echec")
     public PaiementDTO echec(@PathVariable Long id) {
         return paiementService.marquerEchoue(id);
     }
 
-    @PostMapping("/{id}/rembourser")   // ADMIN (SecurityConfig) ; sans montant = remboursement total
+    @PostMapping("/{id}/rembourser")
     public PaiementDTO rembourser(@PathVariable Long id, @RequestParam(required = false) BigDecimal montant) {
         return paiementService.rembourser(id, montant);
     }

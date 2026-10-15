@@ -18,6 +18,23 @@
                         <option th:each="t : ${typesVehicule}" th:value="${t}" th:text="${t}">VOITURE</option>
                     </select>
                 </div>
+                <h3>Choisir une place libre</h3>
+                <label class="check"><input type="checkbox" th:field="*{utiliserReservation}" id="utiliserReservation"/> Le véhicule possède une réservation : utiliser sa place attribuée</label>
+                <p class="muted">Sinon, cliquez sur une place libre pour l’attribuer au véhicule.</p>
+                <div class="parking-map" th:if="${places != null and !#lists.isEmpty(places)}">
+                    <div class="spots">
+                        <button th:each="p : ${places}" type="button" class="spot-card entry-spot"
+                                th:classappend="${p.statut.name() == 'OCCUPEE' or p.statut.name() == 'RESERVEE' or p.statut.name() == 'HORS_SERVICE'} ? 'is-occupee' : (${p.type_place.name() == 'PRM'} ? 'is-prm' : '')"
+                                th:disabled="${p.statut.name() != 'LIBRE'}"
+                                th:attr="data-place-id=${p.place_id},data-place-numero=${p.numero},data-place-zone=${p.zoneNom},data-place-type=${p.type_place}"
+                                th:aria-label="'Place ' + ${p.numero} + ', zone ' + ${p.zoneNom} + ', ' + ${p.type_place} + ', ' + ${p.statut}">
+                            <span class="num" th:text="${p.numero}">1</span>
+                            <span class="meta" th:text="${p.zoneNom != null ? p.zoneNom : 'Sans zone'} + ' · ' + ${p.type_place} + ' · ' + ${p.statut}">Zone · STANDARD · LIBRE</span>
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" th:field="*{placeId}" id="entryPlaceId"/>
+                <p class="hint" id="entryPlaceInfo">Sélectionnez une place libre pour attribuer le véhicule.</p>
                 <button class="btn" type="submit">
                     <th:block th:replace="~{fragments/icons :: i('plus')}"/> Enregistrer l’entrée
                 </button>
@@ -99,6 +116,31 @@
             </table>
         </div>
     </article>
+    <script>
+        (() => {
+            const plan = document.querySelector('.parking-map');
+            const selected = document.getElementById('entryPlaceId');
+            const info = document.getElementById('entryPlaceInfo');
+            const form = document.querySelector('form[action$="/borne/entree"]');
+            const reservation = document.getElementById('utiliserReservation');
+            if (!plan || !selected || !info || !form) return;
+            plan.addEventListener('click', event => {
+                const spot = event.target.closest('.entry-spot');
+                if (!spot || spot.disabled) return;
+                plan.querySelectorAll('.entry-spot.is-selected').forEach(item => item.classList.remove('is-selected'));
+                spot.classList.add('is-selected');
+                selected.value = spot.dataset.placeId;
+                info.textContent = `Place ${spot.dataset.placeNumero} — ${spot.dataset.placeZone || 'Sans zone'} (${spot.dataset.placeType}) sélectionnée.`;
+            });
+            form.addEventListener('submit', event => {
+                if (!selected.value && !reservation?.checked) {
+                    event.preventDefault();
+                    info.textContent = 'Choisissez une place libre avant de valider l’entrée.';
+                    plan.scrollIntoView({behavior: 'smooth', block: 'center'});
+                }
+            });
+        })();
+    </script>
 </section>
 </body>
 </html>

@@ -45,7 +45,8 @@ public interface EntreeSortiesRepository extends JpaRepository<EntreeSorties, Lo
 """)
     Optional<EntreeSorties> findOuverteByImmatriculation(@Param("immat") String immat);
 
-    List<EntreeSorties> findByStatutOrderByDateHeureEntreeDesc(StatutSortie statut);
+    @Query("select e from EntreeSorties e where e.statut = :statut and e.dateHeureSortie is null order by e.dateHeureEntree desc")
+    List<EntreeSorties> findSessionsActives(@Param("statut") StatutSortie statut);
 
     @Query("""
     select e from EntreeSorties e

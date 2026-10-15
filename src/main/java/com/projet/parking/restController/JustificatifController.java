@@ -32,13 +32,13 @@ public class JustificatifController {
         return Map.of("justificatif_id", id);
     }
 
-    @PostMapping("/{id}/valider")   // ADMIN (SecurityConfig)
+    @PostMapping("/{id}/valider")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void valider(@PathVariable Long id) {
         placePrioritaireService.validerJustificatif(id);
     }
 
-    @PostMapping("/{id}/refuser")   // ADMIN (SecurityConfig)
+    @PostMapping("/{id}/refuser")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void refuser(@PathVariable Long id) {
         placePrioritaireService.refuserJustificatif(id);

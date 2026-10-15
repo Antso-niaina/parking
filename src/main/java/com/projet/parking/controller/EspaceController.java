@@ -1,11 +1,10 @@
 package com.projet.parking.controller;
 
-import com.projet.parking.config.SecuriteService;
+import com.projet.parking.security.SecuriteService;
 import com.projet.parking.dto.*;
 import com.projet.parking.entity.*;
 import com.projet.parking.enumeration.*;
 import com.projet.parking.exception.*;
-import com.projet.parking.mapper.*;
 import com.projet.parking.service.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -24,7 +23,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/espace")
@@ -39,6 +40,7 @@ public class EspaceController {
 
     @Data public static class ReservationForm {
         @NotNull private Long vehiculeId;
+        @NotNull private Long placeId;
         @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) private LocalDateTime debut;
         @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) private LocalDateTime fin;
     }
@@ -52,7 +54,7 @@ public class EspaceController {
     }
 
     @Data public static class PaiementForm {
-        @NotNull @Positive private BigDecimal montant;
+        @Positive private BigDecimal montant;
         @NotNull private TypePaiement typePaiement;
         @NotNull private Long cibleId;
     }
@@ -90,7 +92,7 @@ public class EspaceController {
         this.securite = securite;
     }
 
-    // ----------------------------------------------------------------- accueil
+
 
     @GetMapping
     public String accueil(@AuthenticationPrincipal Clients moi, Model model) {
@@ -103,7 +105,7 @@ public class EspaceController {
         return "espace/accueil";
     }
 
-    // ----------------------------------------------------------------- véhicules
+
 
     @GetMapping("/vehicules")
     public String vehicules(@AuthenticationPrincipal Clients moi, Model model) {
@@ -125,7 +127,7 @@ public class EspaceController {
         dto.setType_vehicule(form.getType());
         dto.setMarque(form.getMarque());
         dto.setModel(form.getModel());
-        dto.setClient_id(moi.getClient_id());   // toujours le compte connecté
+        dto.setClient_id(moi.getClient_id());
         vehiculesService.enregistrerVehicule(dto);
         ra.addFlashAttribute("message", "Véhicule enregistré");
         return "redirect:/espace/vehicules";
@@ -139,17 +141,23 @@ public class EspaceController {
         return "redirect:/espace/vehicules";
     }
 
-    // ----------------------------------------------------------------- réservations
+
 
     @GetMapping("/reservations")
     public String reservations(@AuthenticationPrincipal Clients moi, Model model) {
         model.addAttribute("reservations", reservationService.getReservationsParUtilisateur(moi.getClient_id()));
         model.addAttribute("vehicules", vehiculesService.getVehiculesParUtilisateur(moi.getClient_id()));
+        List<PlacesDTO> places = placesService.listerPlaces();
+        Map<String, List<PlacesDTO>> placesParZone = new LinkedHashMap<>();
+        for (PlacesDTO place : places) {
+            placesParZone.computeIfAbsent(place.getZoneNom() != null ? place.getZoneNom() : "Sans zone",
+                    ignored -> new java.util.ArrayList<>()).add(place);
+        }
+        model.addAttribute("placesParZone", placesParZone);
         model.addAttribute("reservation", new ReservationForm());
         return "espace/reservations";
     }
 
-    /** La place est choisie automatiquement : première place compatible libre sur le créneau. */
     @PostMapping("/reservations")
     public String reserver(@AuthenticationPrincipal Clients moi,
                            @Valid @ModelAttribute("reservation") ReservationForm form,
@@ -161,10 +169,9 @@ public class EspaceController {
                 .filter(v -> v.getVehicule_id().equals(form.getVehiculeId()))
                 .findFirst()
                 .orElseThrow(() -> new OperationNonAutoriseeException("Véhicule introuvable"));
-        Places place = placesService.trouverPlaceDisponible(vehicule.getType_vehicule(), form.getDebut(), form.getFin());
         reservationService.creerReservation(moi.getClient_id(), vehicule.getVehicule_id(),
-                place.getPlace_id(), form.getDebut(), form.getFin());
-        ra.addFlashAttribute("message", "Réservation créée (place " + place.getNumero() + "). Elle sera confirmée après paiement.");
+                form.getPlaceId(), form.getDebut(), form.getFin());
+        ra.addFlashAttribute("message", "Demande de réservation envoyée. Elle sera confirmée après paiement.");
         return "redirect:/espace/reservations";
     }
 
@@ -176,7 +183,7 @@ public class EspaceController {
         return "redirect:/espace/reservations";
     }
 
-    // ----------------------------------------------------------------- abonnements
+
 
     @GetMapping("/abonnements")
     public String abonnements(@AuthenticationPrincipal Clients moi, Model model) {
@@ -217,11 +224,13 @@ public class EspaceController {
         return "redirect:/espace/abonnements";
     }
 
-    // ----------------------------------------------------------------- paiements
+
 
     @GetMapping("/paiements")
     public String paiements(@AuthenticationPrincipal Clients moi, Model model) {
         model.addAttribute("paiements", paiementService.getPaiementsParUtilisateur(moi.getClient_id()));
+        model.addAttribute("reservations", reservationService.getReservationsParUtilisateur(moi.getClient_id()).stream()
+                .filter(r -> r.getStatut() == StatutReservation.EN_ATTENTE).toList());
         model.addAttribute("paiement", new PaiementForm());
         model.addAttribute("typesPaiement", List.of(TypePaiement.RESERVATION, TypePaiement.ABONNEMENT));
         return "espace/paiements";
@@ -248,7 +257,7 @@ public class EspaceController {
         return "espace/recu";
     }
 
-    // ----------------------------------------------------------------- alertes
+
 
     @GetMapping("/alertes")
     public String alertes(@AuthenticationPrincipal Clients moi, Model model) {
@@ -263,7 +272,7 @@ public class EspaceController {
         return "redirect:/espace/alertes";
     }
 
-    // ----------------------------------------------------------------- justificatif PMR
+
 
     @GetMapping("/justificatif")
     public String justificatif(@AuthenticationPrincipal Clients moi, Model model) {
@@ -284,7 +293,7 @@ public class EspaceController {
         return "redirect:/espace/justificatif";
     }
 
-    // ----------------------------------------------------------------- outil
+
 
     private String invalide(BindingResult result, RedirectAttributes ra, String retour) {
         var erreur = result.getFieldErrors().get(0);

@@ -24,7 +24,7 @@ public class AuthController {
     @PostMapping("/inscription")
     @ResponseStatus(HttpStatus.CREATED)
     public ClientsDTO inscription(@Valid @RequestBody InscriptionDTO dto) {
-        // le service chiffre le mot de passe et impose le rôle STANDAR : on ne peut pas s'inscrire en ADMIN
+
         Clients client = utilisateurService.inscription(InscriptionMapper.toEntity(dto, dto.getMdp()));
         return ClientsMapper.toDto(client);
     }

@@ -3,79 +3,92 @@
       xmlns:th="http://www.thymeleaf.org" lang="fr">
 <body>
 <section>
-    <div class="grid grid-2">
-        <article class="card">
-            <h2>Nouvelle réservation</h2>
-            <p class="muted">La place est attribuée automatiquement : première place compatible libre sur le créneau. Le contrôle de disponibilité est effectué côté serveur.</p>
-            <form th:action="@{/espace/reservations}" th:object="${reservation}" method="post" class="form" data-once>
+    <article class="card">
+        <h2>Réserver une place</h2>
+        <p class="muted">Choisissez votre véhicule, votre créneau, puis une place libre sur le plan. La disponibilité est revérifiée au moment de l’envoi.</p>
+        <form th:action="@{/espace/reservations}" th:object="${reservation}" method="post" class="form" data-once>
+            <div class="form-row">
                 <div class="field">
                     <label for="vehiculeId">Véhicule</label>
                     <select id="vehiculeId" th:field="*{vehiculeId}" required>
-                        <option value="">Choisir</option>
+                        <option value="">Choisir un véhicule</option>
                         <option th:each="v : ${vehicules}" th:value="${v.vehicule_id}"
+                                th:attr="data-type=${v.type_vehicule}"
                                 th:text="${v.immatriculation} + ' — ' + ${v.marque} + ' ' + ${v.model}">ABC</option>
                     </select>
                     <span class="hint" th:if="${vehicules == null or #lists.isEmpty(vehicules)}">Enregistrez d’abord un véhicule.</span>
                 </div>
-                <div class="form-row">
-                    <div class="field">
-                        <label for="debut">Arrivée</label>
-                        <input id="debut" type="datetime-local" th:field="*{debut}" required/>
-                    </div>
-                    <div class="field">
-                        <label for="fin">Départ</label>
-                        <input id="fin" type="datetime-local" th:field="*{fin}" required/>
+                <div class="field">
+                    <label for="debut">Arrivée</label>
+                    <input id="debut" type="datetime-local" th:field="*{debut}" required/>
+                </div>
+                <div class="field">
+                    <label for="fin">Départ</label>
+                    <input id="fin" type="datetime-local" th:field="*{fin}" required/>
+                </div>
+            </div>
+
+            <h3>Plan du parking</h3>
+            <div class="map-legend">
+                <span class="legend-item"><span class="legend-swatch is-libre"></span> Libre, sélectionnable</span>
+                <span class="legend-item"><span class="legend-swatch is-occupee"></span> Occupée / indisponible</span>
+                <span class="legend-item"><span class="legend-swatch is-prm"></span> Place PMR</span>
+            </div>
+            <div class="parking-map" th:if="${placesParZone != null and !placesParZone.isEmpty()}">
+                <div th:each="zoneEntry : ${placesParZone.entrySet()}" class="map-zone">
+                    <h4 th:text="${zoneEntry.key}">Zone A</h4>
+                    <div class="spots">
+                        <th:block th:each="p : ${zoneEntry.value}">
+                            <button type="button" class="spot-card reservation-spot"
+                                    th:classappend="${p.statut.name() == 'HORS_SERVICE' or p.statut.name() == 'OCCUPEE' or p.statut.name() == 'RESERVEE'} ? 'is-occupee' : (${p.type_place.name() == 'PRM'} ? 'is-prm' : '')"
+                                    th:disabled="${p.statut.name() != 'LIBRE'}"
+                                    th:attr="data-place-id=${p.place_id},data-place-numero=${p.numero},data-place-type=${p.type_place},data-place-statut=${p.statut}"
+                                    th:aria-label="'Place ' + ${p.numero} + ', ' + ${p.type_place} + ', ' + ${p.statut}">
+                                <span class="num" th:text="${p.numero}">1</span>
+                                <span class="meta" th:text="${p.type_place} + ' · ' + ${p.statut}">STANDARD · LIBRE</span>
+                            </button>
+                        </th:block>
                     </div>
                 </div>
-                <button class="btn" type="submit" th:disabled="${vehicules == null or #lists.isEmpty(vehicules)}">
-                    <th:block th:replace="~{fragments/icons :: i('calendar-plus')}"/> Réserver
-                </button>
-            </form>
-        </article>
-        <article class="card">
-            <h2>Comment ça se passe</h2>
-            <ul class="muted">
-                <li>Durée et conflits vérifiés par le serveur.</li>
-                <li>La réservation est confirmée après paiement.</li>
-                <li>Aucun plan interactif de sélection : le backend choisit la place.</li>
-            </ul>
-        </article>
-    </div>
+            </div>
+            <p class="empty" th:if="${placesParZone == null or placesParZone.isEmpty()}">Aucune place n’est configurée pour le moment.</p>
+            <input type="hidden" th:field="*{placeId}" id="placeId"/>
+            <p class="hint" id="selectedPlace">Sélectionnez une place libre sur le plan.</p>
+            <button class="btn" type="submit" th:disabled="${vehicules == null or #lists.isEmpty(vehicules)}">
+                <th:block th:replace="~{fragments/icons :: i('calendar-plus')}"/> Valider ma demande de réservation
+            </button>
+        </form>
+    </article>
 
     <article class="card" style="margin-top:1rem;">
         <h2>Mes réservations</h2>
+        <p class="muted">Une demande apparaît en attente. Payez-la pour que l’administration puisse la valider ; le montant est calculé selon le tarif applicable au créneau réservé.</p>
         <div th:if="${reservations == null or #lists.isEmpty(reservations)}" class="empty">
-            <th:block th:replace="~{fragments/icons :: i('calendar-check')}"/>
-            <p>Aucune réservation.</p>
+            <th:block th:replace="~{fragments/icons :: i('calendar-check')}"/><p>Aucune réservation.</p>
         </div>
         <div class="table-wrap" th:unless="${reservations == null or #lists.isEmpty(reservations)}">
             <table class="data">
-                <thead>
-                <tr>
-                    <th>N°</th>
-                    <th>Place</th>
-                    <th>Véhicule</th>
-                    <th>Arrivée</th>
-                    <th>Départ</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
+                <thead><tr><th>N°</th><th>Place</th><th>Véhicule</th><th>Arrivée</th><th>Départ</th><th>Statut</th><th>Actions</th></tr></thead>
                 <tbody>
                 <tr th:each="r : ${reservations}">
-                    <td th:text="${r.reservation_id}">1</td>
-                    <td th:text="${r.placeNumero}">A1</td>
+                    <td th:text="${r.reservation_id}">1</td><td th:text="${r.placeNumero}">A1</td>
                     <td th:text="${r.immatriculation}">1234</td>
                     <td th:text="${#temporals.format(r.date_heure_arrive, 'dd/MM/yyyy HH:mm')}">date</td>
                     <td th:text="${#temporals.format(r.date_heure_depart, 'dd/MM/yyyy HH:mm')}">date</td>
                     <td><span class="badge" th:text="${r.statut}">EN_ATTENTE</span></td>
                     <td>
+                        <form th:if="${r.statut.name() == 'EN_ATTENTE'}"
+                              th:action="@{/espace/paiements}" method="post" data-once>
+                            <input type="hidden" name="typePaiement" value="RESERVATION"/>
+                            <input type="hidden" name="cibleId" th:value="${r.reservation_id}"/>
+                            <button class="btn btn-sm" type="submit">
+                                <th:block th:replace="~{fragments/icons :: i('wallet')}"/> Payer
+                            </button>
+                        </form>
                         <form th:if="${r.statut.name() == 'EN_ATTENTE' or r.statut.name() == 'CONFIRMEE'}"
                               th:action="@{/espace/reservations/{id}/annuler(id=${r.reservation_id})}" method="post"
                               data-once data-confirm="Annuler cette réservation ?">
-                            <button class="btn btn-ghost btn-sm" type="submit">
-                                <th:block th:replace="~{fragments/icons :: i('x')}"/> Annuler
-                            </button>
+                            <button class="btn btn-ghost btn-sm" type="submit"><th:block th:replace="~{fragments/icons :: i('x')}"/> Annuler</button>
                         </form>
                     </td>
                 </tr>
@@ -83,6 +96,50 @@
             </table>
         </div>
     </article>
+
+    <script>
+        (() => {
+            const plan = document.querySelector('.parking-map');
+            const placeInput = document.getElementById('placeId');
+            const info = document.getElementById('selectedPlace');
+            const vehicleSelect = document.getElementById('vehiculeId');
+            if (!plan || !placeInput || !info || !vehicleSelect) return;
+            const spots = [...plan.querySelectorAll('.reservation-spot')];
+            const refreshSpots = () => {
+                const vehicleType = vehicleSelect.selectedOptions[0]?.dataset.type;
+                spots.forEach(spot => {
+                    const statusAllows = spot.dataset.placeStatut === 'LIBRE';
+                    const vehicleAllows = vehicleType === 'PMR'
+                        ? ['STANDARD', 'PRM'].includes(spot.dataset.placeType)
+                        : spot.dataset.placeType === 'STANDARD';
+                    spot.disabled = !statusAllows || !vehicleType || !vehicleAllows;
+                });
+                const selected = spots.find(spot => spot.dataset.placeId === placeInput.value);
+                if (selected?.disabled) {
+                    selected.classList.remove('is-selected');
+                    placeInput.value = '';
+                    info.textContent = 'Le véhicule choisi ne peut pas réserver cette place. Sélectionnez une place compatible.';
+                }
+            };
+            vehicleSelect.addEventListener('change', refreshSpots);
+            refreshSpots();
+            plan.addEventListener('click', (event) => {
+                const spot = event.target.closest('.reservation-spot');
+                if (!spot || spot.disabled) return;
+                plan.querySelectorAll('.reservation-spot.is-selected').forEach(item => item.classList.remove('is-selected'));
+                spot.classList.add('is-selected');
+                placeInput.value = spot.dataset.placeId;
+                info.textContent = `Place ${spot.dataset.placeNumero} (${spot.dataset.placeType}) sélectionnée.`;
+            });
+            plan.closest('form').addEventListener('submit', (event) => {
+                if (!placeInput.value) {
+                    event.preventDefault();
+                    info.textContent = 'Sélectionnez une place libre avant de valider.';
+                    plan.scrollIntoView({behavior: 'smooth', block: 'center'});
+                }
+            });
+        })();
+    </script>
 </section>
 </body>
 </html>

@@ -20,7 +20,7 @@ import java.util.Map;
 @RequestMapping("/api/places")
 public class PlaceController {
 
-    // MODIFIÉ : la zone est maintenant obligatoire
+
     public record CreerPlaceRequest(@NotBlank String numero, int niveau,
                                     @NotNull TypePlace type, @NotNull Long zoneId) {}
 
@@ -48,9 +48,9 @@ public class PlaceController {
         return Map.of("tauxOccupation", placesService.getTauxOccupation());
     }
 
-    // les quatre suivants : ADMIN (SecurityConfig)
 
-    // MODIFIÉ : transmet la zone à creerPlace
+
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PlacesDTO creer(@Valid @RequestBody CreerPlaceRequest req) {
@@ -58,7 +58,7 @@ public class PlaceController {
                 placesService.creerPlace(req.numero(), req.niveau(), req.type(), req.zoneId()));
     }
 
-    // NOUVEAU : rattache une place existante à une zone, ou la déplace vers une autre
+
     @PatchMapping("/{id}/zone")
     public PlacesDTO affecterZone(@PathVariable Long id, @RequestParam Long zoneId) {
         return PlacesMapper.toDto(placesService.affecterZone(id, zoneId));

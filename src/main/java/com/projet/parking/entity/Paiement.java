@@ -8,7 +8,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-// entity/Paiement.java
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -30,13 +30,13 @@ public class Paiement {
     private LocalDateTime dateCreation;
     private LocalDateTime dateValidation;
 
-    // client payeur : null pour un véhicule occasionnel
+
     @ToString.Exclude @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clients_id")
     private Clients clients;
 
-    // une seule des trois cibles est renseignée, selon typePaiement
+
     @ToString.Exclude @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "entree_sortie_id")

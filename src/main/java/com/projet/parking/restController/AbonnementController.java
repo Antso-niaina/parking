@@ -27,7 +27,7 @@ public class AbonnementController {
                                    boolean renouvellementAuto) {}
 
     private final AbonnementService abonnementService;
-    private final PaiementService paiementService;                       // NOUVEAU
+    private final PaiementService paiementService;
 
     public AbonnementController(AbonnementService abonnementService, PaiementService paiementService) {
         this.abonnementService = abonnementService;
@@ -41,13 +41,13 @@ public class AbonnementController {
                 req.dateDebut(), req.duree(), req.renouvellementAuto());
     }
 
-    // NOUVEAU
+
     @GetMapping("/mes")
     public List<AbonnementsDTO> mesAbonnements(@AuthenticationPrincipal Clients moi) {
         return abonnementService.getAbonnementsParUtilisateur(moi.getClient_id());
     }
 
-    // NOUVEAU
+
     @GetMapping("/utilisateur/{userId}")
     @PreAuthorize("hasRole('ADMIN') or @securite.estMoi(#userId, authentication)")
     public List<AbonnementsDTO> parUtilisateur(@PathVariable Long userId) {
@@ -66,7 +66,7 @@ public class AbonnementController {
         return abonnementService.suspendre(id);
     }
 
-    // MODIFIÉ : résilie ET enregistre le remboursement
+
     @PostMapping("/{id}/resilier")
     @PreAuthorize("hasRole('ADMIN') or @securite.proprietaireAbonnement(#id, authentication)")
     public RemboursementDTO resilier(@PathVariable Long id) {

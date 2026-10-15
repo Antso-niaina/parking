@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/stats")   // ADMIN (SecurityConfig)
+@RequestMapping("/api/stats")
 public class StatistiqueController {
 
     private final StatistiqueService statistiqueService;
@@ -30,7 +30,7 @@ public class StatistiqueController {
                 "sessionsActives", statistiqueService.getSessionsActives());
     }
 
-    // NOUVEAU : taux d'occupation et taux de remplissage de chaque zone
+
     @GetMapping("/zones")
     public List<ZoneStatDTO> parZone() {
         return statistiqueService.getTauxOccupationParZone();

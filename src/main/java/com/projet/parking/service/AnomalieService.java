@@ -20,7 +20,7 @@ public class AnomalieService {
         this.alerteService = alerteService;
     }
 
-    // REQUIRES_NEW : l'anomalie reste enregistrée même si l'opération appelante est annulée (rollback)
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Anomalie signaler(TypeAnomalie type, String details) {
         Anomalie a = new Anomalie();

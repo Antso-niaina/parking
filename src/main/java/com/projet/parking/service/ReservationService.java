@@ -36,7 +36,7 @@ public class ReservationService {
     private final PlacesRepository placesRepository;
     private final ClientService clientService;
     private final PlacesService placesService;
-    private final PlacePrioritaireService placePrioritaireService;   // NOUVEAU
+    private final PlacePrioritaireService placePrioritaireService;
 
     public ReservationService(ReservationRepository reservationRepository,
                               ClientsRepository clientsRepository,
@@ -44,14 +44,14 @@ public class ReservationService {
                               PlacesRepository placesRepository,
                               ClientService clientService,
                               PlacesService placesService,
-                              PlacePrioritaireService placePrioritaireService) {   // NOUVEAU
+                              PlacePrioritaireService placePrioritaireService) {
         this.reservationRepository = reservationRepository;
         this.clientsRepository = clientsRepository;
         this.vehiculesRepository = vehiculesRepository;
         this.placesRepository = placesRepository;
         this.clientService = clientService;
         this.placesService = placesService;
-        this.placePrioritaireService = placePrioritaireService;                   // NOUVEAU
+        this.placePrioritaireService = placePrioritaireService;
     }
 
     @Transactional
@@ -73,7 +73,8 @@ public class ReservationService {
             throw new OperationNonAutoriseeException("Ce véhicule n'appartient pas à ce client");
         }
 
-        Places place = trouverPlace(placeId);
+        Places place = placesRepository.findByIdForUpdate(placeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Place", "avec id inexistant : " + placeId));
         verifierPlaceReservable(place, vehicule);
         verifierDisponibilite(place.getPlace_id(), vehiculeId, -1L, debut, fin);
 
@@ -85,7 +86,10 @@ public class ReservationService {
         r.setClients(client);
         r.setVehicules(vehicule);
         r.setPlaces(place);
-        return ReservationsMapper.toDto(reservationRepository.save(r));
+        Reservations saved = reservationRepository.save(r);
+        place.setStatut(StatutPlace.RESERVEE);
+        placesRepository.save(place);
+        return ReservationsMapper.toDto(saved);
     }
 
     @Transactional
@@ -210,10 +214,13 @@ public class ReservationService {
         if (place.getStatut() == StatutPlace.HORS_SERVICE) {
             throw new OperationNonAutoriseeException("Cette place est hors service");
         }
+        if (place.getStatut() == StatutPlace.OCCUPEE) {
+            throw new OperationNonAutoriseeException("Cette place est actuellement occupée");
+        }
         if (!placesService.estCompatible(place, vehicule)) {
             throw new OperationNonAutoriseeException("Place incompatible avec le type de véhicule");
         }
-        // NOUVEAU : une place prioritaire n'est réservable que par un ayant droit vérifié
+
         if (place.getType_place() == TypePlace.PRM) {
             placePrioritaireService.verifierEligibilite(vehicule.getClients(), vehicule);
         }
@@ -230,7 +237,9 @@ public class ReservationService {
     }
 
     private void libererPlaceSiReservee(Places place) {
-        if (place.getStatut() == StatutPlace.RESERVEE) {
+        if (place.getStatut() == StatutPlace.RESERVEE
+                && !reservationRepository.existsReservationEnCoursOuAVenir(
+                        place.getPlace_id(), STATUTS_BLOQUANTS, LocalDateTime.now())) {
             place.setStatut(StatutPlace.LIBRE);
         }
     }

@@ -19,6 +19,9 @@
             <a class="nav-link" th:classappend="${nav == 'places'} ? 'is-active'" th:href="@{/admin/places}">
                 <th:block th:replace="~{fragments/icons :: i('square-parking')}"/> Places
             </a>
+            <a class="nav-link" th:classappend="${nav == 'clients-admin'} ? 'is-active'" th:href="@{/admin/clients}">
+                <th:block th:replace="~{fragments/icons :: i('users')}"/> Clients
+            </a>
             <a class="nav-link" th:classappend="${nav == 'zones'} ? 'is-active'" th:href="@{/admin/zones}">
                 <th:block th:replace="~{fragments/icons :: i('map')}"/> Zones
             </a>
@@ -29,7 +32,7 @@
                 <th:block th:replace="~{fragments/icons :: i('file-check')}"/> Justificatifs PMR
             </a>
             <a class="nav-link" th:classappend="${nav == 'paiements-admin'} ? 'is-active'" th:href="@{/admin/paiements}">
-                <th:block th:replace="~{fragments/icons :: i('wallet')}"/> Paiements
+                <th:block th:replace="~{fragments/icons :: i('wallet')}"/> Paiements / réservations
             </a>
             <a class="nav-link" th:classappend="${nav == 'alertes-admin'} ? 'is-active'" th:href="@{/admin/alertes}">
                 <th:block th:replace="~{fragments/icons :: i('bell')}"/> Alertes

@@ -41,7 +41,7 @@ public class ZoneController {
         return zonesService.getPlacesSansZone();
     }
 
-    // les trois suivants : ADMIN (SecurityConfig)
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ZonesDTO creer(@Valid @RequestBody ZonesDTO dto) {

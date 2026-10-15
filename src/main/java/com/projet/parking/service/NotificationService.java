@@ -32,10 +32,10 @@ public class NotificationService {
         }
     }
 
-    // Un échec d'envoi ne doit jamais annuler l'opération métier
+
     private void envoyer(String destinataire, String sujet, String message) {
         try {
-            // Pour l'instant : écriture dans les logs. C'est ici qu'on branchera l'e-mail ou le SMS.
+
             log.info("[NOTIFICATION] à {} | {} | {}", destinataire, sujet, message);
         } catch (RuntimeException e) {
             log.error("Échec d'envoi de notification à {} : {}", destinataire, e.getMessage());

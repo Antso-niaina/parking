@@ -3,7 +3,7 @@ package com.projet.parking.service;
 import com.projet.parking.dto.ClientsDTO;
 import com.projet.parking.entity.Clients;
 import com.projet.parking.enumeration.StatutAbonnement;
-import com.projet.parking.enumeration.StatutPaiement;           // ajouté
+import com.projet.parking.enumeration.StatutPaiement;
 import com.projet.parking.enumeration.StatutReservation;
 import com.projet.parking.enumeration.StatutUtilisateur;
 import com.projet.parking.exception.OperationNonAutoriseeException;
@@ -12,7 +12,7 @@ import com.projet.parking.mapper.ClientsMapper;
 import com.projet.parking.repository.AbonnementsRepository;
 import com.projet.parking.repository.ClientsRepository;
 import com.projet.parking.repository.EntreeSortiesRepository;
-import com.projet.parking.repository.FactureRepository;         // ajouté
+import com.projet.parking.repository.FactureRepository;
 import com.projet.parking.repository.ReservationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,18 +27,18 @@ public class ClientService {
     private final ReservationRepository reservationRepository;
     private final AbonnementsRepository abonnementsRepository;
     private final EntreeSortiesRepository entreeSortiesRepository;
-    private final FactureRepository factureRepository;          // ajouté
+    private final FactureRepository factureRepository;
 
     public ClientService(ClientsRepository clientsRepository,
                          ReservationRepository reservationRepository,
                          AbonnementsRepository abonnementsRepository,
                          EntreeSortiesRepository entreeSortiesRepository,
-                         FactureRepository factureRepository) { // ajouté
+                         FactureRepository factureRepository) {
         this.clientsRepository = clientsRepository;
         this.reservationRepository = reservationRepository;
         this.abonnementsRepository = abonnementsRepository;
         this.entreeSortiesRepository = entreeSortiesRepository;
-        this.factureRepository = factureRepository;             // ajouté
+        this.factureRepository = factureRepository;
     }
 
     @Transactional(readOnly = true)

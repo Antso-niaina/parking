@@ -19,7 +19,7 @@ public class PageExceptionHandler {
         return "redirect:" + pagePrecedente(request);
     }
 
-    /** On ne garde que le chemin du Referer : jamais de redirection vers un autre site. */
+
     private String pagePrecedente(HttpServletRequest request) {
         String referer = request.getHeader("Referer");
         if (referer != null) {
@@ -29,7 +29,7 @@ public class PageExceptionHandler {
                     return path;
                 }
             } catch (IllegalArgumentException ignored) {
-                // Referer illisible : on retombe sur l'accueil
+
             }
         }
         return "/";

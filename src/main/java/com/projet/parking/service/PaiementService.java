@@ -27,6 +27,7 @@ public class PaiementService {
     private final FactureRepository factureRepository;
     private final ReservationService reservationService;
     private final AbonnementService abonnementService;
+    private final TarifsService tarifsService;
 
     public PaiementService(PaiementRepository paiementRepository,
                            EntreeSortiesRepository entreeSortiesRepository,
@@ -34,7 +35,8 @@ public class PaiementService {
                            AbonnementsRepository abonnementsRepository,
                            FactureRepository factureRepository,
                            ReservationService reservationService,
-                           AbonnementService abonnementService) {
+                           AbonnementService abonnementService,
+                           TarifsService tarifsService) {
         this.paiementRepository = paiementRepository;
         this.entreeSortiesRepository = entreeSortiesRepository;
         this.reservationRepository = reservationRepository;
@@ -42,16 +44,14 @@ public class PaiementService {
         this.factureRepository = factureRepository;
         this.reservationService = reservationService;
         this.abonnementService = abonnementService;
+        this.tarifsService = tarifsService;
     }
 
-    // ===================================================================== CRÉATION
 
-    /** Crée un paiement EN_ATTENTE pour une session, une réservation ou un abonnement. */
+
+
     @Transactional
     public PaiementDTO creerPaiement(BigDecimal montant, TypePaiement type, Long cibleId) {
-        if (montant == null || montant.signum() <= 0) {
-            throw new OperationNonAutoriseeException("Le montant doit être strictement positif");
-        }
         if (type == null || cibleId == null) {
             throw new OperationNonAutoriseeException("Le type et la cible du paiement sont obligatoires");
         }
@@ -61,7 +61,7 @@ public class PaiementService {
             case SESSION -> {
                 EntreeSorties s = entreeSortiesRepository.findById(cibleId)
                         .orElseThrow(() -> new ResourceNotFoundException("Session", "avec id inexistant : " + cibleId));
-                // session terminée : seulement pour solder une facture restée impayée
+
                 if (s.getStatut() == StatutSortie.TERMINE && !factureImpayee(cibleId)) {
                     throw new OperationNonAutoriseeException("Aucun montant à régler pour cette session");
                 }
@@ -80,6 +80,7 @@ public class PaiementService {
                 if (paiementRepository.existsPourReservation(cibleId, EN_ATTENTE)) {
                     throw new OperationNonAutoriseeException("Un paiement est déjà en attente pour cette réservation");
                 }
+                montant = tarifsService.calculerMontantReservation(r);
                 p.setReservations(r);
                 p.setClients(r.getClients());
             }
@@ -96,6 +97,9 @@ public class PaiementService {
                 p.setClients(a.getClients());
             }
         }
+        if (montant == null || montant.signum() <= 0) {
+            throw new OperationNonAutoriseeException("Le montant calculé doit être strictement positif");
+        }
         p.setMontant(montant);
         p.setTypePaiement(type);
         p.setStatut(StatutPaiement.EN_ATTENTE);
@@ -103,14 +107,14 @@ public class PaiementService {
         return PaiementMapper.toDto(paiementRepository.save(p));
     }
 
-    // ===================================================================== VALIDATION / ÉCHEC / REMBOURSEMENT
 
-    /** Encaissement confirmé : le paiement passe PAYEE et la cible est mise à jour. */
+
+
     @Transactional
     public PaiementDTO validerPaiement(Long id) {
         Paiement p = trouverEntite(id);
         if (p.getStatut() == StatutPaiement.PAYEE) {
-            return PaiementMapper.toDto(p);   // idempotent : une passerelle peut rappeler deux fois
+            return PaiementMapper.toDto(p);
         }
         if (p.getStatut() != StatutPaiement.EN_ATTENTE) {
             throw new OperationNonAutoriseeException("Validation impossible : paiement " + p.getStatut());
@@ -118,7 +122,7 @@ public class PaiementService {
         p.setStatut(StatutPaiement.PAYEE);
         p.setDateValidation(LocalDateTime.now());
 
-        // si l'effet sur la cible échoue (ex. créneau passé), tout est annulé et le paiement reste EN_ATTENTE
+
         switch (p.getTypePaiement()) {
             case RESERVATION -> reservationService.confirmerReservation(
                     p.getReservations().getReservation_id(), p.getMontant());
@@ -129,7 +133,7 @@ public class PaiementService {
         return PaiementMapper.toDto(p);
     }
 
-    /** La cible reste en attente : le client peut réessayer avec un nouveau paiement. */
+
     @Transactional
     public PaiementDTO marquerEchoue(Long id) {
         Paiement p = trouverEntite(id);
@@ -140,13 +144,13 @@ public class PaiementService {
         return PaiementMapper.toDto(p);
     }
 
-    /** Remboursement total. */
+
     @Transactional
     public PaiementDTO rembourser(Long id) {
         return rembourser(id, null);
     }
 
-    /** Remboursement partiel ou total (ex. montant retourné par annulerReservation / resilier). */
+
     @Transactional
     public PaiementDTO rembourser(Long id, BigDecimal montant) {
         Paiement p = trouverEntite(id);
@@ -157,7 +161,7 @@ public class PaiementService {
         if (aRembourser.signum() <= 0 || aRembourser.compareTo(p.getMontant()) > 0) {
             throw new OperationNonAutoriseeException("Montant de remboursement invalide");
         }
-        // on ne rembourse pas ce qui est encore utilisé
+
         if (p.getTypePaiement() == TypePaiement.RESERVATION
                 && p.getReservations().getStatut() != StatutReservation.ANNULEE) {
             throw new OperationNonAutoriseeException("Remboursement impossible : la réservation n'est pas annulée");
@@ -171,12 +175,12 @@ public class PaiementService {
         return PaiementMapper.toDto(p);
     }
 
-    // ===================================================================== ANNULATION + REMBOURSEMENT AUTOMATIQUE (NOUVEAU)
 
-    /**
-     * Annule la réservation, abandonne ses paiements en attente et rembourse le paiement encaissé
-     * selon le délai (100 % à plus de 24 h, 50 % à plus de 2 h, sinon rien). Tout est atomique.
-     */
+
+
+
+
+
     @Transactional
     public RemboursementDTO annulerReservationEtRembourser(Long reservationId) {
         BigDecimal montant = reservationService.annulerReservation(reservationId);
@@ -186,7 +190,7 @@ public class PaiementService {
                 paiementRepository.findByReservationIdAndStatut(reservationId, StatutPaiement.PAYEE), montant);
     }
 
-    /** Résilie l'abonnement et rembourse le paiement encaissé au prorata du temps non consommé. */
+
     @Transactional
     public RemboursementDTO resilierAbonnementEtRembourser(Long abonnementId) {
         BigDecimal montant = abonnementService.resilier(abonnementId);
@@ -196,12 +200,12 @@ public class PaiementService {
                 paiementRepository.findByAbonnementIdAndStatut(abonnementId, StatutPaiement.PAYEE), montant);
     }
 
-    /** Un paiement jamais encaissé ne doit plus pouvoir être validé après l'annulation. */
+
     private void abandonnerPaiementsEnAttente(List<Paiement> enAttente) {
         enAttente.forEach(p -> p.setStatut(StatutPaiement.ANNULLEE));
     }
 
-    /** Montant nul (annulation tardive) ou rien d'encaissé : aucun remboursement, le paiement reste PAYEE. */
+
     private RemboursementDTO rembourserSiPaye(List<Paiement> payes, BigDecimal montant) {
         if (payes.isEmpty() || montant == null || montant.signum() <= 0) {
             return new RemboursementDTO(BigDecimal.ZERO, null);
@@ -211,23 +215,23 @@ public class PaiementService {
         return new RemboursementDTO(montant, paiement.getPaiement_id());
     }
 
-    // ===================================================================== CONSULTATION (NOUVEAU)
+
 
     @Transactional(readOnly = true)
     public List<PaiementDTO> getPaiementsParUtilisateur(Long userId) {
         return paiementRepository.findByClientId(userId).stream().map(PaiementMapper::toDto).toList();
     }
 
-    // ===================================================================== OUTILS
 
-    /** Total encaissé pour une session ; utilisé par AccesService à la sortie. */
+
+
     @Transactional(readOnly = true)
     public BigDecimal totalValideSession(Long sessionId) {
         BigDecimal total = paiementRepository.totalParSession(sessionId, StatutPaiement.PAYEE);
         return total != null ? total : BigDecimal.ZERO;
     }
 
-    /** Session déjà sortie avec une facture impayée : les paiements reçus la soldent. */
+
     private void solderFactureSession(Long sessionId) {
         factureRepository.findBySessionId(sessionId)
                 .filter(f -> f.getStatutPaiement() == StatutPaiement.EN_ATTENTE)

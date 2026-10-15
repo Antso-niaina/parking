@@ -25,7 +25,7 @@ public class TarifsService {
     private static final LocalTime DEBUT_JOUR = LocalTime.of(6, 0);
     private static final LocalTime FIN_JOUR = LocalTime.of(20, 0);
     private static final BigDecimal CENT = BigDecimal.valueOf(100);
-    private static final BigDecimal PAS_ARRONDI = new BigDecimal("0.05");   // ex. 50 pour des Ariary
+    private static final BigDecimal PAS_ARRONDI = new BigDecimal("0.05");
     private static final LocalDateTime FIN_DES_TEMPS = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
     private static final List<StatutAbonnement> ABONNEMENTS_ELIGIBLES =
             List.of(StatutAbonnement.ACTIF, StatutAbonnement.RENOUVELE);
@@ -42,9 +42,9 @@ public class TarifsService {
         this.clientsRepository = clientsRepository;
     }
 
-    // ===================================================================== CALCUL
 
-    /** Facture non enregistrée, calculée à partir de session.getDateHeureSortie(). */
+
+
     @Transactional(readOnly = true)
     public Facture calculer(EntreeSorties session) {
         LocalDateTime entree = session.getDateHeureEntree();
@@ -56,7 +56,7 @@ public class TarifsService {
         BigDecimal apresRemise = appliquerRemise(base, vehicule.getClients(), vehicule, tarif, sortie);
         BigDecimal remise = base.subtract(apresRemise);
 
-        // pénalité de dépassement si la session vient d'une réservation
+
         int prevue = 0;
         long depassement = 0;
         BigDecimal penalite = BigDecimal.ZERO;
@@ -67,17 +67,29 @@ public class TarifsService {
             penalite = penalite(tarif, TypePenalite.DEPASSEMENT).multiply(BigDecimal.valueOf((depassement + 59) / 60));
         }
 
-        BigDecimal total = arrondir(apresRemise.add(penalite));   // les pénalités ne sont jamais remisées
+        BigDecimal total = arrondir(apresRemise.add(penalite));
         return construire(session, tarif, base, remise, penalite, total, prevue, depassement);
     }
 
-    /** Montant seul, utile pour afficher le prix à la borne avant le paiement. */
+
     @Transactional(readOnly = true)
     public BigDecimal calculerMontant(EntreeSorties session) {
         return calculer(session).getMontantTotal();
     }
 
-    /** Ticket perdu : forfait fixe de la grille, sans remise. */
+
+    @Transactional(readOnly = true)
+    public BigDecimal calculerMontantReservation(Reservations reservation) {
+        EntreeSorties sejour = new EntreeSorties();
+        sejour.setDateHeureEntree(reservation.getDate_heure_arrive());
+        sejour.setDateHeureSortie(reservation.getDate_heure_depart());
+        sejour.setVehicules(reservation.getVehicules());
+        sejour.setPlaces(reservation.getPlaces());
+        sejour.setReservation(reservation);
+        return calculer(sejour).getMontantTotal();
+    }
+
+
     @Transactional(readOnly = true)
     public Facture calculerForfaitTicketPerdu(EntreeSorties session) {
         Tarifs tarif = tarifPourSejour(session.getDateHeureEntree(), session.getDateHeureSortie());
@@ -85,11 +97,11 @@ public class TarifsService {
         return construire(session, tarif, forfait, BigDecimal.ZERO, BigDecimal.ZERO, arrondir(forfait), 0, 0);
     }
 
-    /**
-     * Durée facturable après franchise, découpée en heures entamées. Chaque heure prend le tarif de la
-     * période où elle commence (nuit / week-end), multiplié par les coefficients véhicule et place.
-     * Le plafond journalier s'applique par tranche de 24 h.
-     */
+
+
+
+
+
     private BigDecimal calculerBase(EntreeSorties session, Tarifs tarif) {
         LocalDateTime entree = session.getDateHeureEntree();
         LocalDateTime sortie = session.getDateHeureSortie();
@@ -121,7 +133,7 @@ public class TarifsService {
         return total.add(appliquerPlafondJournalier(tranche, plafond));
     }
 
-    /** Les premières minutes sont offertes : on les retire de la durée facturable. */
+
     public Duration appliquerFranchise(Duration duree, Tarifs tarif) {
         return Duration.ofMinutes(Math.max(0, duree.toMinutes() - tarif.getFranchiseMinutes()));
     }
@@ -130,7 +142,7 @@ public class TarifsService {
         return montantJour.min(plafond);
     }
 
-    /** Une seule remise, la plus avantageuse (abonné, PMR ou VIP) : pas de cumul. */
+
     public BigDecimal appliquerRemise(BigDecimal montant, Clients client, Vehicules vehicule,
                                       Tarifs tarif, LocalDateTime instant) {
         double pct = 0;
@@ -151,20 +163,20 @@ public class TarifsService {
         return montant.multiply(BigDecimal.ONE.subtract(BigDecimal.valueOf(pct).divide(CENT))).max(BigDecimal.ZERO);
     }
 
-    /** DEPASSEMENT = par heure entamée ; les autres types sont des montants fixes. */
+
     @Transactional(readOnly = true)
     public BigDecimal calculerPenalite(TypePenalite type) {
         LocalDateTime maintenant = LocalDateTime.now();
         return arrondir(penalite(tarifPourSejour(maintenant, maintenant), type));
     }
 
-    // ===================================================================== REMBOURSEMENT
+
 
     public BigDecimal calculerRemboursement(Reservations reservation) {
         return calculerRemboursement(reservation, LocalDateTime.now());
     }
 
-    /** 100 % si plus de 24 h avant l'arrivée, 50 % si plus de 2 h, sinon rien. */
+
     public BigDecimal calculerRemboursement(Reservations r, LocalDateTime maintenant) {
         if (r.getMontantPaye() == null || r.getMontantPaye().signum() == 0
                 || (r.getStatut() != StatutReservation.EN_ATTENTE && r.getStatut() != StatutReservation.CONFIRMEE)) {
@@ -178,9 +190,9 @@ public class TarifsService {
         return arrondir(r.getMontantPaye().multiply(taux));
     }
 
-    // ===================================================================== ADMINISTRATION
 
-    /** Nouvelle grille en vigueur immédiatement ; les anciennes sont clôturées, jamais supprimées. */
+
+
     @Transactional
     public Tarifs definirTarif(Long adminId, Tarifs grille) {
         Clients admin = clientsRepository.findById(adminId)
@@ -241,9 +253,9 @@ public class TarifsService {
         }
     }
 
-    // ===================================================================== OUTILS
 
-    /** Règle fixe : au pas de PAS_ARRONDI le plus proche, jamais négatif. */
+
+
     public BigDecimal arrondir(BigDecimal montant) {
         if (montant == null || montant.signum() <= 0) {
             return BigDecimal.ZERO.setScale(2);
@@ -261,7 +273,7 @@ public class TarifsService {
         };
     }
 
-    /** Majoration la plus forte entre nuit et week-end (pas de cumul). */
+
     private BigDecimal coefPeriode(Tarifs t, LocalDateTime instant) {
         double pct = 0;
         LocalTime h = instant.toLocalTime();
@@ -275,7 +287,7 @@ public class TarifsService {
         return BigDecimal.ONE.add(BigDecimal.valueOf(pct).divide(CENT));
     }
 
-    /** Grille en vigueur à l'entrée (le prix annoncé à l'arrivée est tenu) ; à défaut, celle de la sortie. */
+
     private Tarifs tarifPourSejour(LocalDateTime entree, LocalDateTime sortie) {
         return tarifsRepository.findEnVigueur(entree).stream().findFirst()
                 .or(() -> tarifsRepository.findEnVigueur(sortie).stream().findFirst())

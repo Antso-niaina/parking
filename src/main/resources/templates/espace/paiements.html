@@ -6,12 +6,8 @@
     <div class="grid grid-2">
         <article class="card">
             <h2>Nouveau paiement</h2>
-            <p class="muted">Indiquez le montant, le type (réservation ou abonnement) et l’identifiant de la cible. Le paiement reste en attente jusqu’à validation.</p>
+            <p class="muted">Pour une réservation, le montant est calculé automatiquement selon le créneau, le véhicule, la place et le tarif en vigueur. Le paiement reste en attente jusqu’à sa validation par l’administration.</p>
             <form th:action="@{/espace/paiements}" th:object="${paiement}" method="post" class="form" data-once>
-                <div class="field">
-                    <label for="montant">Montant</label>
-                    <input id="montant" type="number" step="0.01" min="0.01" th:field="*{montant}" required/>
-                </div>
                 <div class="field">
                     <label for="typePaiement">Type</label>
                     <select id="typePaiement" th:field="*{typePaiement}" required>
@@ -19,10 +15,22 @@
                         <option th:each="t : ${typesPaiement}" th:value="${t}" th:text="${t}">RESERVATION</option>
                     </select>
                 </div>
-                <div class="field">
+                <div class="field" id="reservationCibleField">
+                    <label for="reservationCible">Réservation à payer</label>
+                    <select id="reservationCible" required>
+                        <option value="">Choisir une réservation en attente</option>
+                        <option th:each="r : ${reservations}" th:value="${r.reservation_id}"
+                                th:text="|Réservation n°${r.reservation_id} — ${r.placeNumero}, ${#temporals.format(r.date_heure_arrive, 'dd/MM HH:mm')}|">Réservation</option>
+                    </select>
+                </div>
+                <div class="field" id="abonnementCibleField" hidden>
                     <label for="cibleId">Identifiant de la cible</label>
-                    <input id="cibleId" type="number" th:field="*{cibleId}" required/>
-                    <span class="hint">Numéro de la réservation ou de l’abonnement à régler.</span>
+                    <input id="cibleId" type="number" th:field="*{cibleId}"/>
+                    <span class="hint">Numéro de l’abonnement à régler.</span>
+                </div>
+                <div class="field" id="montantField" hidden>
+                    <label for="montant">Montant de l’abonnement</label>
+                    <input id="montant" type="number" step="0.01" min="0.01" th:field="*{montant}"/>
                 </div>
                 <button class="btn" type="submit">
                     <th:block th:replace="~{fragments/icons :: i('wallet')}"/> Enregistrer le paiement
@@ -70,6 +78,32 @@
             </div>
         </article>
     </div>
+    <script>
+        (() => {
+            const type = document.getElementById('typePaiement');
+            const reservationField = document.getElementById('reservationCibleField');
+            const abonnementField = document.getElementById('abonnementCibleField');
+            const montantField = document.getElementById('montantField');
+            const reservation = document.getElementById('reservationCible');
+            const abonnementId = document.getElementById('cibleId');
+            const montant = document.getElementById('montant');
+            if (!type) return;
+            const actualiser = () => {
+                const reservationChoisie = type.value === 'RESERVATION';
+                reservationField.hidden = !reservationChoisie;
+                abonnementField.hidden = reservationChoisie;
+                montantField.hidden = reservationChoisie;
+                reservation.required = reservationChoisie;
+                abonnementId.required = !reservationChoisie;
+                montant.required = !reservationChoisie;
+            };
+            type.addEventListener('change', actualiser);
+            actualiser();
+            document.querySelector('form[data-once]').addEventListener('submit', () => {
+                if (type.value === 'RESERVATION') abonnementId.value = reservation.value;
+            });
+        })();
+    </script>
 </section>
 </body>
 </html>

@@ -29,7 +29,7 @@ public class ZonesService {
     public ZonesDTO creerZone(ZonesDTO dto) {
         valider(dto);
         String nom = dto.getNom().trim();
-        if (zonesRepository.existsByNomIgnoreCase(nom)) {
+        if (zonesRepository.existeNomIgnoreCase(nom)) {
             throw new OperationNonAutoriseeException("Une zone portant ce nom existe déjà");
         }
         Zones zone = ZonesMapper.toEntity(dto);
@@ -73,10 +73,10 @@ public class ZonesService {
         return placesRepository.findByZoneId(id).stream().map(PlacesMapper::toDto).toList();
     }
 
-    /** Places à rattacher à une zone (créées avant la gestion des zones). */
+
     @Transactional(readOnly = true)
     public List<PlacesDTO> getPlacesSansZone() {
-        return placesRepository.findByZonesIsNull().stream().map(PlacesMapper::toDto).toList();
+        return placesRepository.trouverSansZone().stream().map(PlacesMapper::toDto).toList();
     }
 
     @Transactional

@@ -23,13 +23,13 @@ public class PlacePrioritaireService {
 
     private static final List<StatutReservation> RESERVATIONS_ACTIVES =
             List.of(StatutReservation.EN_ATTENTE, StatutReservation.CONFIRMEE, StatutReservation.EN_COURS);
-    private static final Duration HORIZON_CONVERSION = Duration.ofDays(30);  // pas de conversion si réservée avant
+    private static final Duration HORIZON_CONVERSION = Duration.ofDays(30);
 
-    // Réglables dans application.properties
+
     @Value("${parking.prioritaire.quota-minimum-pourcentage:2.0}")
     private double quotaPourcentage;
     @Value("${parking.prioritaire.reserve-libre:1}")
-    private int reserveLibre;   // places prioritaires qui doivent rester libres pour les ayants droit
+    private int reserveLibre;
 
     private final PlacesRepository placesRepository;
     private final JustificatifPmrRepository justificatifRepository;
@@ -52,9 +52,9 @@ public class PlacePrioritaireService {
         this.anomalieService = anomalieService;
     }
 
-    // ===================================================================== JUSTIFICATIFS
 
-    /** Dépôt de la carte PMR par le client : elle reste EN_ATTENTE jusqu'à vérification par un admin. */
+
+
     @Transactional
     public Long enregistrerJustificatif(Long userId, String numeroCarte, LocalDate dateExpiration) {
         Clients client = clientsRepository.findById(userId)
@@ -78,7 +78,7 @@ public class PlacePrioritaireService {
         return justificatifRepository.save(j).getJustificatif_id();
     }
 
-    /** À réserver aux administrateurs (@PreAuthorize sur le contrôleur). */
+
     @Transactional
     public void validerJustificatif(Long id) {
         decider(id, StatutJustificatif.VERIFIE);
@@ -99,7 +99,7 @@ public class PlacePrioritaireService {
         j.setDateVerification(LocalDateTime.now());
     }
 
-    // ===================================================================== ÉLIGIBILITÉ ET ATTRIBUTION
+
 
     public boolean estEligible(Clients client, Vehicules vehicule) {
         return motifRefus(client, vehicule) == null;
@@ -125,18 +125,18 @@ public class PlacePrioritaireService {
         return null;
     }
 
-    /** Première place PRM libre sur le créneau ; vide s'il n'y en a plus. Lève une exception si non ayant droit. */
+
     public Optional<Places> attribuerPlacePrioritaire(Vehicules vehicule, LocalDateTime debut, LocalDateTime fin) {
         verifierEligibilite(vehicule.getClients(), vehicule);
         return placesLibres(TypePlace.PRM, debut, fin).stream().findFirst();
     }
 
-    // ===================================================================== QUOTA MINIMUM
 
-    /**
-     * Garantit qu'il existe au moins X % de places PRM (au minimum 1). Si elles manquent, des places
-     * STANDARD libres (aux niveaux les plus bas) sont converties. Retourne le nombre de conversions.
-     */
+
+
+
+
+
     @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public int garantirQuotaMinimum() {
@@ -166,16 +166,16 @@ public class PlacePrioritaireService {
         return aConvertir.size();
     }
 
-    // ===================================================================== REPLI
 
-    /**
-     * Parking plein pour les places STANDARD : applique les règles de ReglesSubstitution (STANDARD -> substitut,
-     * par ordre de priorité). Les places PRM ne sont données que si plus de `reserveLibre` restent libres.
-     */
+
+
+
+
+
     @Transactional(readOnly = true)
     public Optional<Places> appliquerRegleRepli(Vehicules vehicule, LocalDateTime debut, LocalDateTime fin) {
         if (!placesLibres(TypePlace.STANDARD, debut, fin).isEmpty()) {
-            return Optional.empty();   // le parking n'est pas plein : pas de repli
+            return Optional.empty();
         }
         for (ReglesSubstitution regle : reglesRepository
                 .findByTypePlaceDemandeOrderByOrdrePrioriteAsc(TypePlace.STANDARD)) {
@@ -188,9 +188,9 @@ public class PlacePrioritaireService {
         return Optional.empty();
     }
 
-    // ===================================================================== OCCUPATION ILLÉGITIME
 
-    /** Place PRM occupée par un véhicule qui n'a pas (ou plus) le droit : une anomalie est générée une seule fois. */
+
+
     @Scheduled(cron = "0 */5 * * * *")
     @Transactional
     public int detecterOccupationIllegitime() {
@@ -208,7 +208,7 @@ public class PlacePrioritaireService {
         return alertes;
     }
 
-    // ===================================================================== OUTIL
+
 
     private List<Places> placesLibres(TypePlace type, LocalDateTime debut, LocalDateTime fin) {
         return placesRepository.trouverDisponibles(List.of(type), StatutPlace.HORS_SERVICE,

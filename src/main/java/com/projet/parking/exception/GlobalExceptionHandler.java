@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
             ResourceNotFoundException ex) {
         Map<String, String> errors = new HashMap<String, String>();
         errors.put(ex.getEntity(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors); // était 400
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errors);
     }
 
     @ExceptionHandler(OperationNonAutoriseeException.class)

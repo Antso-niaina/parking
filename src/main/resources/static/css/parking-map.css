@@ -57,6 +57,14 @@
     gap: 0.15rem;
     text-align: center;
 }
+.reservation-spot,
+.entry-spot { color: inherit; font: inherit; cursor: pointer; transition: transform 120ms ease, box-shadow 120ms ease; }
+.reservation-spot:not(:disabled):hover,
+.entry-spot:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgb(20 40 70 / 14%); }
+.reservation-spot:disabled,
+.entry-spot:disabled { cursor: not-allowed; opacity: 0.62; }
+.reservation-spot.is-selected,
+.entry-spot.is-selected { outline: 3px solid var(--blue); outline-offset: 2px; background: var(--blue-soft); }
 .spot-card.is-occupee { background: var(--navy); color: var(--white); }
 .spot-card.is-reservee { border-color: var(--blue); background: var(--blue-soft); }
 .spot-card.is-hors { background: var(--gray); border-style: dashed; }
